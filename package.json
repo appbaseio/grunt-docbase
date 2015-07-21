@@ -1,0 +1,46 @@
+{
+  "name": "grunt-docbase",
+  "description": "The best Grunt plugin ever.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/mateus/DocbaseGrunt",
+  "author": {
+    "name": "Mateus Freira",
+    "email": "mateus.freira@gmail.com",
+    "url": "https://github.com/mateusfreira"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mateus/DocbaseGrunt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mateus/DocbaseGrunt/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/mateus/DocbaseGrunt/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "Gruntfile.js",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-contrib-nodeunit": "~0.2.0",
+    "grunt": "~0.4.1"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.1"
+  },
+  "keywords": [
+    "gruntplugin"
+  ],
+  "dependencies": {
+    "phantom": "^0.7.2"
+  }
+}
