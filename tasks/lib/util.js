@@ -4,3 +4,11 @@ exports.urlToFielName = function(url) {
 	var path = pageName + '.html';
 	return path;
 };
+exports.getPageLinks = function(page, selector, callback) {
+	page.evaluate(function(linksSelector) {
+		var data = $(linksSelector);
+		return data.toArray().map(function(a) {
+			return $(a).attr('href');
+		});
+	}, callback, selector);
+};

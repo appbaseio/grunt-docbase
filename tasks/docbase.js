@@ -19,50 +19,64 @@ module.exports = function(grunt) {
       generatePath: 'html/',
       urlToAccess: 'http://localhost:8080/',
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
+      linksVersions: '[ng-bind="version"]',
       rootDocument: 'html',
       startDocument: '<html>',
       endDocument: '</html>'
     });
     var util = require("./lib/util.js");
     var urlToFielName = util.urlToFielName;
+    var getPageLinks = util.getPageLinks;
     var phantom = require('phantom');
     var pages = [];
     var links = [];
+    var crawled = {};
     var fs = require('fs');
-    var crawlPage = function(url, fildPages) {
+    var checkQueueProcess = function(page, ph) {
+      page.close();
+      pages.shift();
+      if (pages.length === 0) {
+        setTimeout(function() {
+          ph.exit();
+          done();
+        }, 0);
+      }
+    };
+    var replasePageLinks = function(documentContent) {
+      links.forEach(function(link) {
+        documentContent = documentContent.replace(new RegExp(link, 'g'), urlToFielName(link));
+      });
+      return documentContent;
+    };
+    var makeCrawler = function(findLinks, once) {
+      return function(currentLinks) {
+        currentLinks.forEach(function(link) {
+          if (!once || !crawled[link]) {
+            if(once){
+              crawled[link] = true;
+            }
+            links.push(link);
+            crawlPage(options.urlToAccess + link, findLinks);
+          }
+        });
+      };
+    };
+    var crawlPage = function(url, findLinks) {
       pages.push(url);
       phantom.create(function(ph) {
         ph.createPage(function(page) {
           page.open(url, function() {
-            if (fildPages) {
-              page.evaluate(function(linksSelector) {
-                var data = $(linksSelector);
-                return data.toArray().map(function(a) {
-                  return $(a).attr('href');
-                });
-              }, function(currentLinks) {
-                links = links.concat(currentLinks);
-                currentLinks.forEach(function(link) {
-                  crawlPage(url + link, false);
-                });
-              }, options.linksSelector);
+            if (findLinks) {
+              getPageLinks(page, options.linksSelector, makeCrawler(false, false));
+              getPageLinks(page, options.linksVersions, makeCrawler(true, true));
             };
             page.evaluate(function(rootDocument) {
               return $(rootDocument).html();
             }, function(documentContent) {
-              links.forEach(function(link) {
-                documentContent = documentContent.replace(new RegExp(link, 'g'), urlToFielName(link));
-              });
+              documentContent = replasePageLinks(documentContent);
               grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
               grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
-              page.close();
-              pages.shift();
-              if (pages.length === 0) {
-                setTimeout(function() {
-                  ph.exit();
-                  done();
-                }, 0);
-              }
+              checkQueueProcess(page, ph);
             }, options.rootDocument);
           });
         });
