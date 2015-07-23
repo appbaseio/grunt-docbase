@@ -17,7 +17,7 @@ module.exports = function(grunt) {
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
-      urlToAcess: 'http://localhost:8080/',
+      urlToAccess: 'http://localhost:8080/',
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
       rootDocument: 'html',
       startDocument: '<html>',
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
         });
       });
     };
-    crawlPage(options.urlToAcess, true);
+    crawlPage(options.urlToAccess, true);
   });
 
 };
