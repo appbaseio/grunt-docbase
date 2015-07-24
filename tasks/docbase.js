@@ -29,6 +29,7 @@ module.exports = function(grunt) {
     var util = require("./lib/util.js");
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
+    var inQuotes = util.inQuotes;
     var phantom = require('phantom');
     var pages = [];
     var links = [];
@@ -69,7 +70,11 @@ module.exports = function(grunt) {
     };
     var replacePageLinks = function(documentContent) {
       links.forEach(function(link) {
-        documentContent = documentContent.replace(new RegExp(link, 'g'), options.baseUrl+urlToFielName(link));
+        var url = options.baseUrl+urlToFielName(link);
+        documentContent = documentContent.replace(new RegExp(inQuotes(link), 'g'), url);
+        documentContent = documentContent.replace(new RegExp(link+"\#", 'g'), url+"#");
+        console.log(inQuotes(link));
+        documentContent = documentContent.replace(new RegExp(options.urlToAccess, 'g'), "");
       });
       return documentContent;
     };
@@ -99,8 +104,8 @@ module.exports = function(grunt) {
               return $(rootDocument).html();
             }, function(documentContent) {
               documentContent = replacePageLinks(documentContent);
-              grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
-              grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
+              grunt.file.write(options.generatePath + urlToFielName(url, options.baseUrl), options.startDocument + documentContent + options.endDocument, 'w');
+              grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url, options.baseUrl));
               checkQueueProcess(page, ph);
             }, options.rootDocument);
           });

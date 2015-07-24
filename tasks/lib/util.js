@@ -4,6 +4,9 @@ exports.urlToFielName = function(url) {
 	var path = pageName + '.html';
 	return path;
 };
+exports.inQuotes = function(s){
+	return '"'+s+'"';
+};
 exports.getPageLinks = function(page, selector, callback) {
 	page.evaluate(function(linksSelector) {
 		var data = $(linksSelector);
