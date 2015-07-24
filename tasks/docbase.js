@@ -17,6 +17,7 @@ module.exports = function(grunt) {
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
+      baseUrl: '',
       urlToAccess: 'http://localhost:8080/',
       assets: ['bower_components', 'styles', 'scripts'],
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
@@ -41,23 +42,34 @@ module.exports = function(grunt) {
         grunt.file.copy(srcpath, options.generatePath + srcpath)
       }
     };
+    var clearFolder = function(srcpath){
+      if (grunt.file.isDir(srcpath)) {
+        var files = grunt.file.expand(srcpath + "/*");
+        files.forEach(clearFolder);
+      } else {
+        grunt.file.delete(srcpath);
+      }      
+    };
+    var prepareAssets = function(){
+        options.assets.forEach(function(srcpath) {
+          grunt.log.writeln("Moving:", srcpath);
+          moveAssets(srcpath);
+        });          
+    }
     var checkQueueProcess = function(page, ph) {
       page.close();
       pages.shift();
       if (pages.length === 0) {
-        options.assets.forEach(function(srcpath) {
-          grunt.log.writeln("Moving:", srcpath);
-          moveAssets(srcpath);
-        });
+        prepareAssets();
         setTimeout(function() {
           ph.exit();
           done();
         }, 0);
       }
     };
-    var replasePageLinks = function(documentContent) {
+    var replacePageLinks = function(documentContent) {
       links.forEach(function(link) {
-        documentContent = documentContent.replace(new RegExp(link, 'g'), urlToFielName(link));
+        documentContent = documentContent.replace(new RegExp(link, 'g'), options.baseUrl+urlToFielName(link));
       });
       return documentContent;
     };
@@ -86,7 +98,7 @@ module.exports = function(grunt) {
             page.evaluate(function(rootDocument) {
               return $(rootDocument).html();
             }, function(documentContent) {
-              documentContent = replasePageLinks(documentContent);
+              documentContent = replacePageLinks(documentContent);
               grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
               grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
               checkQueueProcess(page, ph);
@@ -95,6 +107,7 @@ module.exports = function(grunt) {
         });
       });
     };
+    clearFolder(options.generatePath);
     crawlPage(options.urlToAccess, true);
   });
 
