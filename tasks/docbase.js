@@ -18,6 +18,7 @@ module.exports = function(grunt) {
     var options = this.options({
       generatePath: 'html/',
       urlToAccess: 'http://localhost:8080/',
+      assets: ['bower_components', 'styles', 'scripts'],
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
       linksVersions: '[ng-bind="version"]',
       rootDocument: 'html',
@@ -32,10 +33,22 @@ module.exports = function(grunt) {
     var links = [];
     var crawled = {};
     var fs = require('fs');
+    var moveAssets = function(srcpath) {
+      if (grunt.file.isDir(srcpath)) {
+        var files = grunt.file.expand(srcpath + "/*");
+        files.forEach(moveAssets);
+      } else {
+        grunt.file.copy(srcpath, options.generatePath + srcpath)
+      }
+    };
     var checkQueueProcess = function(page, ph) {
       page.close();
       pages.shift();
       if (pages.length === 0) {
+        options.assets.forEach(function(srcpath) {
+          grunt.log.writeln("Moving:", srcpath);
+          moveAssets(srcpath);
+        });
         setTimeout(function() {
           ph.exit();
           done();
@@ -52,7 +65,7 @@ module.exports = function(grunt) {
       return function(currentLinks) {
         currentLinks.forEach(function(link) {
           if (!once || !crawled[link]) {
-            if(once){
+            if (once) {
               crawled[link] = true;
             }
             links.push(link);
