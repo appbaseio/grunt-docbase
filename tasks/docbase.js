@@ -18,7 +18,7 @@ module.exports = function(grunt) {
     var options = this.options({
       generatePath: 'html/',
       baseUrl: '',
-      urlToAccess: 'http://localhost:8080/',
+      urlToAccess: "http://localhost:9001/",
       assets: ['bower_components', 'styles', 'scripts'],
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
       linksVersions: '[ng-bind="version"]',
@@ -27,6 +27,7 @@ module.exports = function(grunt) {
       endDocument: '</html>'
     });
     var util = require("./lib/util.js");
+    var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
@@ -68,12 +69,20 @@ module.exports = function(grunt) {
         }, 0);
       }
     };
+    var replaceBaseUrl = function(documentContent){
+      var result = documentContent;
+      termsToBaseURLReplace.forEach(function(term){
+        result = result.replace(new RegExp(term+'/', 'g'), term+options.baseUrl);
+      });
+      return result;
+    }
     var replacePageLinks = function(documentContent) {
       links.forEach(function(link) {
-        var url = options.baseUrl+urlToFielName(link);
+        var url = urlToFielName(link);
+        //options.baseUrl+
+
         documentContent = documentContent.replace(new RegExp(inQuotes(link), 'g'), url);
         documentContent = documentContent.replace(new RegExp(link+"\#", 'g'), url+"#");
-        console.log(inQuotes(link));
         documentContent = documentContent.replace(new RegExp(options.urlToAccess, 'g'), "");
       });
       return documentContent;
@@ -103,9 +112,9 @@ module.exports = function(grunt) {
             page.evaluate(function(rootDocument) {
               return $(rootDocument).html();
             }, function(documentContent) {
-              documentContent = replacePageLinks(documentContent);
-              grunt.file.write(options.generatePath + urlToFielName(url, options.baseUrl), options.startDocument + documentContent + options.endDocument, 'w');
-              grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url, options.baseUrl));
+              documentContent = replaceBaseUrl(replacePageLinks(documentContent));
+              grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
+              grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
               checkQueueProcess(page, ph);
             }, options.rootDocument);
           });
