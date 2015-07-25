@@ -110,7 +110,7 @@ module.exports = function(grunt) {
               getPageLinks(page, options.linksVersions, makeCrawler(true, true));
             };
             page.evaluate(function(rootDocument) {
-              return $(rootDocument).html();
+              return document.querySelector(rootDocument).innerHTML;
             }, function(documentContent) {
               documentContent = replaceBaseUrl(replacePageLinks(documentContent));
               grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');

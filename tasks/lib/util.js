@@ -12,6 +12,8 @@ exports.getPageLinks = function(page, selector, callback) {
 		var data = $(linksSelector);
 		return data.toArray().map(function(a) {
 			return $(a).attr('href');
+		}).filter(function(link){
+			return link.indexOf("http://") === -1 && link.indexOf("https://") === -1 ;
 		});
 	}, callback, selector);
 };
