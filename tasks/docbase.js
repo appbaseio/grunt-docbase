@@ -116,7 +116,7 @@ module.exports = function(grunt) {
         ph.createPage(function(page) {
           page.open(url, function() {
             util.waitFor({
-              debug: false,
+              debug: true,
               interval: 100,
               timeout: 1000,
               checkLoadedSelector: options.checkLoadedSelector,
