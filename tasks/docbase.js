@@ -17,11 +17,12 @@ module.exports = function(grunt) {
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
+      mapFile: 'map.json',
       baseUrl: '',
       urlToAccess: "http://localhost:9001/",
       assets: ['bower_components', 'styles', 'scripts', 'images'],
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
-      linksVersions: '[ng-bind="version"]',
+      linksVersions: '.version-switcher a',
       rootDocument: 'html',
       startDocument: '<html>',
       endDocument: '</html>'
@@ -31,6 +32,8 @@ module.exports = function(grunt) {
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
+    var mapFile = grunt.file.readJSON(options.mapFile);
+    var versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
     var pages = [];
     var links = [];
@@ -76,13 +79,19 @@ module.exports = function(grunt) {
       });
       return result;
     }
+    var replaceLink = function(documentContent, from, to){
+        documentContent = documentContent.replace(new RegExp(inQuotes(from), 'g'), to);
+        documentContent = documentContent.replace(new RegExp(from+"\#", 'g'), to+"#");
+        return documentContent;
+    };
     var replacePageLinks = function(documentContent) {
+      versionsLink.forEach(function(version){
+        documentContent = replaceLink(documentContent, version.link, urlToFielName(version.realLink));
+        documentContent = replaceLink(documentContent, urlToFielName(version.link), urlToFielName(version.realLink));
+      });      
       links.forEach(function(link) {
         var url = urlToFielName(link);
-        //options.baseUrl+
-
-        documentContent = documentContent.replace(new RegExp(inQuotes(link), 'g'), url);
-        documentContent = documentContent.replace(new RegExp(link+"\#", 'g'), url+"#");
+        documentContent = replaceLink(documentContent, link, url);
         documentContent = documentContent.replace(new RegExp(options.urlToAccess, 'g'), "");
       });
       return documentContent;
