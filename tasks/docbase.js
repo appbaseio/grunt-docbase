@@ -19,6 +19,7 @@ module.exports = function(grunt) {
       generatePath: 'html/',
       mapFile: 'map.json',
       baseUrl: '',
+      checkLoadedSelector: "[role='flatdoc-menu']",
       urlToAccess: "http://localhost:9001/",
       assets: ['bower_components', 'styles', 'scripts', 'images'],
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
@@ -47,19 +48,19 @@ module.exports = function(grunt) {
         grunt.file.copy(srcpath, options.generatePath + srcpath)
       }
     };
-    var clearFolder = function(srcpath){
+    var clearFolder = function(srcpath) {
       if (grunt.file.isDir(srcpath)) {
         var files = grunt.file.expand(srcpath + "/*");
         files.forEach(clearFolder);
       } else {
         grunt.file.delete(srcpath);
-      }      
+      }
     };
-    var prepareAssets = function(){
-        options.assets.forEach(function(srcpath) {
-          grunt.log.writeln("Moving:", srcpath);
-          moveAssets(srcpath);
-        });          
+    var prepareAssets = function() {
+      options.assets.forEach(function(srcpath) {
+        grunt.log.writeln("Moving:", srcpath);
+        moveAssets(srcpath);
+      });
     }
     var checkQueueProcess = function(page, ph) {
       page.close();
@@ -72,23 +73,23 @@ module.exports = function(grunt) {
         }, 0);
       }
     };
-    var replaceBaseUrl = function(documentContent){
+    var replaceBaseUrl = function(documentContent) {
       var result = documentContent;
-      termsToBaseURLReplace.forEach(function(term){
-        result = result.replace(new RegExp(term+'/', 'g'), term+options.baseUrl);
+      termsToBaseURLReplace.forEach(function(term) {
+        result = result.replace(new RegExp(term + '/', 'g'), term + options.baseUrl);
       });
       return result;
     }
-    var replaceLink = function(documentContent, from, to){
-        documentContent = documentContent.replace(new RegExp(inQuotes(from), 'g'), to);
-        documentContent = documentContent.replace(new RegExp(from+"\#", 'g'), to+"#");
-        return documentContent;
+    var replaceLink = function(documentContent, from, to) {
+      documentContent = documentContent.replace(new RegExp(inQuotes(from), 'g'), to);
+      documentContent = documentContent.replace(new RegExp(from + "\#", 'g'), to + "#");
+      return documentContent;
     };
     var replacePageLinks = function(documentContent) {
-      versionsLink.forEach(function(version){
+      versionsLink.forEach(function(version) {
         documentContent = replaceLink(documentContent, version.link, urlToFielName(version.realLink));
         documentContent = replaceLink(documentContent, urlToFielName(version.link), urlToFielName(version.realLink));
-      });      
+      });
       links.forEach(function(link) {
         var url = urlToFielName(link);
         documentContent = replaceLink(documentContent, link, url);
@@ -114,18 +115,33 @@ module.exports = function(grunt) {
       phantom.create(function(ph) {
         ph.createPage(function(page) {
           page.open(url, function() {
-            if (findLinks) {
-              getPageLinks(page, options.linksSelector, makeCrawler(false, false));
-              getPageLinks(page, options.linksVersions, makeCrawler(true, true));
-            };
-            page.evaluate(function(rootDocument) {
-              return document.querySelector(rootDocument).innerHTML;
-            }, function(documentContent) {
-              documentContent = replaceBaseUrl(replacePageLinks(documentContent));
-              grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
-              grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
-              checkQueueProcess(page, ph);
-            }, options.rootDocument);
+            util.waitFor({
+              debug: false,
+              interval: 100,
+              timeout: 1000,
+              checkLoadedSelector: options.checkLoadedSelector,
+              check: function(check) {
+                return !!document.querySelector(check);
+              },
+              success: function() {
+
+                if (findLinks) {
+                  getPageLinks(page, options.linksSelector, makeCrawler(false, false));
+                  getPageLinks(page, options.linksVersions, makeCrawler(true, true));
+                };
+                page.evaluate(function(rootDocument) {
+                  return document.querySelector(rootDocument).innerHTML;
+                }, function(documentContent) {
+                  documentContent = replaceBaseUrl(replacePageLinks(documentContent));
+                  grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
+                  grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
+                  checkQueueProcess(page, ph);
+                }, options.rootDocument);
+              },
+              error: function() {
+                  grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
+                } // optional
+            }, page);
           });
         });
       });

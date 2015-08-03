@@ -9,7 +9,7 @@ exports.versionLinks = function(mapFile) {
 		var url = '#/' + key;
 		return {
 			link: url,
-			realLink: url + '/' + mapFile[key][0].name +'/'+ mapFile[key][0].files[0].name
+			realLink: url + '/' + mapFile[key][0].name + '/' + mapFile[key][0].files[0].name
 		}
 	});
 	return versions;
@@ -29,3 +29,26 @@ exports.getPageLinks = function(page, selector, callback) {
 		callback(a);
 	}, selector);
 };
+exports.waitFor = function($config, page) {
+	$config._start = $config._start || new Date().getTime();
+
+	if ($config.timeout && new Date().getTime() - $config._start > $config.timeout) {
+		if ($config.error) $config.error();
+		if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
+		return;
+	}
+	page.evaluate($config.check, function(result) {
+		if (result) {
+			if (result) {
+				if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
+					$config.success();
+			}
+		}else{
+			setTimeout(function() {
+				console.log('Retry');
+				waitFor($config, page);
+			}, $config.interval || 0);
+		}
+
+	}, $config.checkLoadedSelector);
+}
