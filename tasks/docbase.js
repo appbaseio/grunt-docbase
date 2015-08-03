@@ -19,7 +19,7 @@ module.exports = function(grunt) {
       generatePath: 'html/',
       baseUrl: '',
       urlToAccess: "http://localhost:9001/",
-      assets: ['bower_components', 'styles', 'scripts'],
+      assets: ['bower_components', 'styles', 'scripts', 'images'],
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
       linksVersions: '[ng-bind="version"]',
       rootDocument: 'html',
