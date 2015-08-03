@@ -116,7 +116,7 @@ module.exports = function(grunt) {
         ph.createPage(function(page) {
           page.open(url, function() {
             util.waitFor({
-              debug: true,
+              debug: false,
               interval: 100,
               timeout: 1000,
               checkLoadedSelector: options.checkLoadedSelector,
@@ -124,7 +124,6 @@ module.exports = function(grunt) {
                 return !!document.querySelector(check);
               },
               success: function() {
-
                 if (findLinks) {
                   getPageLinks(page, options.linksSelector, makeCrawler(false, false));
                   getPageLinks(page, options.linksVersions, makeCrawler(true, true));
