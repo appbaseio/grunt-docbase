@@ -45,9 +45,9 @@ exports.waitFor = function($config, page) {
 			}
 		}else{
 			setTimeout(function() {
-				console.log('Retry');
-				waitFor($config, page);
-			}, $config.interval || 0);
+				if ($config.debug) console.log('Retring');
+				exports.waitFor($config, page);
+			}, $config.interval || 0);					
 		}
 
 	}, $config.checkLoadedSelector);
