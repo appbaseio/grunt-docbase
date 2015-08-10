@@ -73,10 +73,15 @@ module.exports = function(grunt) {
         }, 0);
       }
     };
-    var replaceBaseUrl = function(documentContent) {
+    var replaceBaseUrl = function(documentContent, fileName) {
+      var nPaths  = (fileName.match(/\//g) || []).length;
+      var baseUrl = "";
+      for (var i = nPaths - 1; i >= 0; i--) {
+        baseUrl += "../";
+      }      
       var result = documentContent;
       termsToBaseURLReplace.forEach(function(term) {
-        result = result.replace(new RegExp(term + '/', 'g'), term + options.baseUrl);
+        result = result.replace(new RegExp(term + '/', 'g'), term + baseUrl);
       });
       return result;
     }
@@ -131,8 +136,9 @@ module.exports = function(grunt) {
                 page.evaluate(function(rootDocument) {
                   return document.querySelector(rootDocument).innerHTML;
                 }, function(documentContent) {
-                  documentContent = replaceBaseUrl(replacePageLinks(documentContent));
-                  grunt.file.write(options.generatePath + urlToFielName(url), options.startDocument + documentContent + options.endDocument, 'w');
+                  var fileName = urlToFielName(url);
+                  documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
+                  grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
                   grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
                   checkQueueProcess(page, ph);
                 }, options.rootDocument);
