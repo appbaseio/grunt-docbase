@@ -76,7 +76,7 @@ module.exports = function(grunt) {
     var replaceBaseUrl = function(documentContent, fileName) {
       var nPaths  = (fileName.match(/\//g) || []).length;
       var baseUrl = "";
-      for (var i = nPaths - 1; i >= 0; i--) {
+      for (var i = nPaths - 2; i >= 0; i--) {
         baseUrl += "../";
       }      
       var result = documentContent;
