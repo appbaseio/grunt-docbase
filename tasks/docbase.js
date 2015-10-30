@@ -74,11 +74,11 @@ module.exports = function(grunt) {
       }
     };
     var replaceBaseUrl = function(documentContent, fileName) {
-      var nPaths  = (fileName.match(/\//g) || []).length;
+      var nPaths = (fileName.match(/\//g) || []).length;
       var baseUrl = "";
       for (var i = nPaths - 2; i >= 0; i--) {
         baseUrl += "../";
-      }      
+      }
       var result = documentContent;
       termsToBaseURLReplace.forEach(function(term) {
         result = result.replace(new RegExp(term + '/', 'g'), term + baseUrl);
@@ -119,11 +119,12 @@ module.exports = function(grunt) {
       pages.push(url);
       phantom.create(function(ph) {
         ph.createPage(function(page) {
+          page.set('settings.userAgent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36');
           page.open(url, function() {
             util.waitFor({
-              debug: false,
+              debug: true,
               interval: 100,
-              timeout: 1000,
+              timeout: 50000,
               checkLoadedSelector: options.checkLoadedSelector,
               check: function(check) {
                 return !!document.querySelector(check);
@@ -143,12 +144,19 @@ module.exports = function(grunt) {
                   checkQueueProcess(page, ph);
                 }, options.rootDocument);
               },
-              error: function() {
+              error: function(e) {
                   grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
                 } // optional
             }, page);
           });
         });
+      }, {
+        parameters: {
+          'ignore-ssl-errors': 'yes',
+          'ssl-protocol' : 'tlsv1',
+          'web-security' : false,
+          //'debug' : 'true'
+        }
       });
     };
     clearFolder(options.generatePath);
