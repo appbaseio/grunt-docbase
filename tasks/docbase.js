@@ -25,8 +25,10 @@ module.exports = function(grunt) {
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
       linksVersions: '.version-switcher a',
       rootDocument: 'html',
+      generateSearchIndex: false,
       startDocument: '<html>',
-      endDocument: '</html>'
+      endDocument: '</html>',
+      searchIndexSelector: "h2, p"
     });
     var util = require("./lib/util.js");
     var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
@@ -39,6 +41,7 @@ module.exports = function(grunt) {
     var pages = [];
     var links = [];
     var crawled = {};
+    var searchIndex = [];
     var fs = require('fs');
     var moveAssets = function(srcpath) {
       if (grunt.file.isDir(srcpath)) {
@@ -84,7 +87,7 @@ module.exports = function(grunt) {
         result = result.replace(new RegExp(term + '/', 'g'), term + baseUrl);
       });
       return result;
-    }
+    };
     var replaceLink = function(documentContent, from, to) {
       documentContent = documentContent.replace(new RegExp(inQuotes(from), 'g'), to);
       documentContent = documentContent.replace(new RegExp(from + "\#", 'g'), to + "#");
@@ -115,6 +118,42 @@ module.exports = function(grunt) {
         });
       };
     };
+    var generateSearchIndex = function(page, url) {
+      page.evaluate(function(selector, url) {
+        var elements = Array.prototype.slice.call(document.querySelectorAll(selector));
+        var h2s = elements.filter(function(element) {
+          return element.tagName == 'H2';
+        });
+        return h2s.map(function(element, index) {
+          var h2Index = elements.indexOf(element);
+          var nextH2 = h2s[index + 1];
+          var nextH2Index = !!nextH2 ? elements.indexOf(nextH2) : elements.length;
+          var elementsBetween = elements.slice(h2Index, nextH2Index);
+          return {
+            link: url + "#" + element.id,
+            title: element.innerText,
+            content: elementsBetween.reduce(function(text, current) {
+              return text += current.outerHTML;
+            }, "")
+          }
+        });
+      }, function(h2s) {
+        searchIndex = searchIndex.concat(h2s);
+      }, options.searchIndexSelector, url);
+    };
+    var generatePage = function(page, url, ph) {
+      page.evaluate(function(rootDocument) {
+        return document.querySelector(rootDocument).innerHTML;
+      }, function(documentContent) {
+        var fileName = urlToFielName(url);
+        documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
+        grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
+        grunt.file.write(options.generatePath + "search-index.json", JSON.stringify(searchIndex), 'w');
+        grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
+        checkQueueProcess(page, ph);
+      }, options.rootDocument);
+
+    };
     var crawlPage = function(url, findLinks) {
       pages.push(url);
       phantom.create(function(ph) {
@@ -134,15 +173,10 @@ module.exports = function(grunt) {
                   getPageLinks(page, options.linksSelector, makeCrawler(false, false));
                   getPageLinks(page, options.linksVersions, makeCrawler(true, true));
                 };
-                page.evaluate(function(rootDocument) {
-                  return document.querySelector(rootDocument).innerHTML;
-                }, function(documentContent) {
-                  var fileName = urlToFielName(url);
-                  documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
-                  grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
-                  grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
-                  checkQueueProcess(page, ph);
-                }, options.rootDocument);
+                generatePage(page, url, ph);
+                if (options.generateSearchIndex) {
+                  generateSearchIndex(page, url);
+                }
               },
               error: function(e) {
                   grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
@@ -153,8 +187,8 @@ module.exports = function(grunt) {
       }, {
         parameters: {
           'ignore-ssl-errors': 'yes',
-          'ssl-protocol' : 'tlsv1',
-          'web-security' : false,
+          'ssl-protocol': 'tlsv1',
+          'web-security': false,
           //'debug' : 'true'
         }
       });
