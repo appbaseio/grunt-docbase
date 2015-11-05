@@ -28,7 +28,7 @@ module.exports = function(grunt) {
       generateSearchIndex: false,
       startDocument: '<html>',
       endDocument: '</html>',
-      searchIndexSelector: "h2, p"
+      searchIndexSelector: "h1, h2, h3, p"
     });
     var util = require("./lib/util.js");
     var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
@@ -130,7 +130,7 @@ module.exports = function(grunt) {
           var nextH2Index = !!nextH2 ? elements.indexOf(nextH2) : elements.length;
           var elementsBetween = elements.slice(h2Index, nextH2Index);
           return {
-            link: url + "#" + element.id,
+            link: "/#" + element.id,
             title: element.innerText,
             content: elementsBetween.reduce(function(text, current) {
               return text += current.outerHTML;
