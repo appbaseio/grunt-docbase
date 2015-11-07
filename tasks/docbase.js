@@ -1,3 +1,4 @@
+
 /*
  * grunt-docbase
  * https://github.com/mateus/DocbaseGrunt
@@ -42,6 +43,7 @@ module.exports = function(grunt) {
     var links = [];
     var crawled = {};
     var searchIndex = [];
+    var indexdLinks = [];
     var fs = require('fs');
     var moveAssets = function(srcpath) {
       if (grunt.file.isDir(srcpath)) {
@@ -130,8 +132,10 @@ module.exports = function(grunt) {
           var nextH2 = h2s[index + 1];
           var nextH2Index = !!nextH2 ? elements.indexOf(nextH2) : elements.length;
           var elementsBetween = elements.slice(h2Index, nextH2Index);
+          var path = url.substr(url.indexOf('#'));
+          var link = element.id ?  path + "/#" + element.id : path;
           return {
-            link: "/#" + element.id,
+            link: link,
             title: element.innerText,
             content: elementsBetween.reduce(function(text, current) {
               return text += current.outerHTML;
@@ -139,7 +143,14 @@ module.exports = function(grunt) {
           }
         });
       }, function(elements) {
-        searchIndex = searchIndex.concat(elements);
+        var  missingLinks = elements.filter(function(element){
+          var has = !!indexdLinks[element.link];
+          if(!has){
+            indexdLinks[element.link] = true;
+          }
+          return !has;
+        });
+        searchIndex = searchIndex.concat(missingLinks);
       }, options.searchIndexSelector, url);
     };
     var generatePage = function(page, url, ph) {
