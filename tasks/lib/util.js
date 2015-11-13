@@ -1,6 +1,9 @@
 exports.urlToFielName = function(url) {
 	var urlParts = url.split("#");
 	var pageName = urlParts[1] ? urlParts[1] : "index";
+	if (pageName[pageName.length - 1] === '/') {
+		pageName = pageName.substr(0, pageName.length - 1);
+	}
 	var path = pageName + '.html';
 	return path;
 };
@@ -41,13 +44,13 @@ exports.waitFor = function($config, page) {
 		if (result) {
 			if (result) {
 				if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
-					$config.success();
+				$config.success();
 			}
-		}else{
+		} else {
 			setTimeout(function() {
 				if ($config.debug) console.log('Retring');
 				exports.waitFor($config, page);
-			}, $config.interval || 0);					
+			}, $config.interval || 0);
 		}
 
 	}, $config.checkLoadedSelector);

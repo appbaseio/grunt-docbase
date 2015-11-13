@@ -1,4 +1,3 @@
-
 /*
  * grunt-docbase
  * https://github.com/mateus/DocbaseGrunt
@@ -150,7 +149,10 @@ module.exports = function(grunt) {
           }
           return !has;
         });
-        searchIndex = searchIndex.concat(missingLinks);
+        searchIndex = searchIndex.concat(missingLinks.map(function(link){
+          link.link = urlToFielName(link.link);
+          return link;
+        }));
       }, options.searchIndexSelector, url);
     };
     var generatePage = function(page, url, ph) {
