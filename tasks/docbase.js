@@ -14,6 +14,7 @@ module.exports = function(grunt) {
   // creation: http://gruntjs.com/creating-tasks
 
   grunt.registerMultiTask('docbase', 'Grunt plugin to generate html files from your docbase project.', function() {
+
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
@@ -25,11 +26,13 @@ module.exports = function(grunt) {
       linksSelector: '[ng-href]:not(.dropdown-toggle)',
       linksVersions: '.version-switcher a',
       rootDocument: 'html',
-      generateSearchIndex: false,
+      generateSearchIndex: true,
+      generateHtml: true,
       startDocument: '<html>',
       endDocument: '</html>',
       searchIndexSelector: "h1, h2, h3, p"
     });
+    grunt.log.writeln("starting ");
     var util = require("./lib/util.js");
     var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
     var urlToFielName = util.urlToFielName;
@@ -150,7 +153,7 @@ module.exports = function(grunt) {
           return !has;
         });
         searchIndex = searchIndex.concat(missingLinks.map(function(link){
-          link.link = urlToFielName(link.link);
+          link.link = options.generateHtml ?  urlToFielName(link.link) : link.link;
           return link;
         }));
       }, options.searchIndexSelector, url);
@@ -161,7 +164,9 @@ module.exports = function(grunt) {
       }, function(documentContent) {
         var fileName = urlToFielName(url);
         documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
-        grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
+        if(options.generateHtml)
+          grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
+
         grunt.file.write(options.generatePath + "search-index.json", JSON.stringify(searchIndex), 'w');
         grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
         checkQueueProcess(page, ph);
