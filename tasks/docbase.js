@@ -166,8 +166,8 @@ module.exports = function(grunt) {
         documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
         if(options.generateHtml)
           grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
-
-        grunt.file.write(options.generatePath + "search-index.json", JSON.stringify(searchIndex), 'w');
+        var path = options.generateHtml ? options.generatePath : '';
+        grunt.file.write(path + "search-index.json", JSON.stringify(searchIndex), 'w');
         grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
         checkQueueProcess(page, ph);
       }, options.rootDocument);
