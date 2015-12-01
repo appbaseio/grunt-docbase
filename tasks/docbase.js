@@ -208,7 +208,7 @@ module.exports = function(grunt) {
           'ignore-ssl-errors': 'yes',
           'ssl-protocol': 'tlsv1',
           'web-security': false,
-          'debug' : 'true'
+          //'debug' : 'true'
         }
       });
     };
