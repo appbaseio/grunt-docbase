@@ -30,7 +30,7 @@ module.exports = function(grunt) {
       generateHtml: true,
       startDocument: '<html>',
       endDocument: '</html>',
-      searchIndexSelector: "h1, h2, h3, p"
+      searchIndexSelector: "h1, h2, h3, p, ul"
     });
     grunt.log.writeln("starting ");
     var util = require("./lib/util.js");
