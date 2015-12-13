@@ -1,7 +1,7 @@
 {
   "name": "grunt-docbase",
   "description": "Static HTML generetor plugin.",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "homepage": "https://github.com/mateus/DocbaseGrunt",
   "author": {
     "name": "Mateus Freira",

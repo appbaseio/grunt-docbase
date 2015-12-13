@@ -38,11 +38,11 @@ module.exports = function(grunt) {
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
-    var mapFile = grunt.file.readJSON(options.mapFile);
-    if(mapFile.versions){
-      mapFile = mapFile.versions;
-    }
-    var versionsLink = util.versionLinks(mapFile);
+    //var mapFile = grunt.file.readJSON(options.mapFile);
+    //if(mapFile.versions){
+    //  mapFile = mapFile.versions;
+    //}
+    //var versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
     var pages = [];
     var links = [];
@@ -103,10 +103,11 @@ module.exports = function(grunt) {
       return documentContent;
     };
     var replacePageLinks = function(documentContent) {
+      /*
       versionsLink.forEach(function(version) {
         documentContent = replaceLink(documentContent, version.link, urlToFielName(version.realLink));
         documentContent = replaceLink(documentContent, urlToFielName(version.link), urlToFielName(version.realLink));
-      });
+      });*/
       links.forEach(function(link) {
         var url = urlToFielName(link);
         documentContent = replaceLink(documentContent, link, url);
