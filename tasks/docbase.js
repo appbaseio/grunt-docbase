@@ -1,10 +1,10 @@
 /*
- * grunt-docbase
- * https://github.com/mateus/DocbaseGrunt
- *
- * Copyright (c) 2015 Mateus Freira
- * Licensed under the MIT license.
- */
+* grunt-docbase
+* https://github.com/mateus/DocbaseGrunt
+*
+* Copyright (c) 2015 Mateus Freira
+* Licensed under the MIT license.
+*/
 
 'use strict';
 
@@ -18,7 +18,7 @@ module.exports = function(grunt) {
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
-      mapFile: 'map.json',
+      mapFile: 'docbase.json',
       baseUrl: '',
       checkLoadedSelector: "[role='flatdoc-menu']",
       urlToAccess: "http://localhost:9001/",
@@ -39,6 +39,9 @@ module.exports = function(grunt) {
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
     var mapFile = grunt.file.readJSON(options.mapFile);
+    if(mapFile.versions){
+      mapFile = mapFile.versions;
+    }
     var versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
     var pages = [];
@@ -64,10 +67,12 @@ module.exports = function(grunt) {
       }
     };
     var prepareAssets = function() {
-      options.assets.forEach(function(srcpath) {
-        grunt.log.writeln("Moving:", srcpath);
-        moveAssets(srcpath);
-      });
+      if(options.generateHtml){
+        options.assets.forEach(function(srcpath) {
+          grunt.log.writeln("Moving:", srcpath);
+          moveAssets(srcpath);
+        });
+      }
     }
     var checkQueueProcess = function(page, ph) {
       page.close();
@@ -165,7 +170,7 @@ module.exports = function(grunt) {
         var fileName = urlToFielName(url);
         documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
         if(options.generateHtml)
-          grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
+        grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
         var path = options.generateHtml ? options.generatePath : '';
         grunt.file.write(path + "search-index.json", JSON.stringify(searchIndex), 'w');
         grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
@@ -198,8 +203,8 @@ module.exports = function(grunt) {
                 }
               },
               error: function(e) {
-                  grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
-                } // optional
+                grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
+              } // optional
             }, page);
           });
         });
