@@ -18,7 +18,8 @@ module.exports = function(grunt) {
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
-      mapFile: 'docbase.json',
+      //mapFile: 'docbase.json',
+      configJsFile: 'docbase-config.js',
       baseUrl: '',
       checkLoadedSelector: "[role='flatdoc-menu']",
       urlToAccess: "http://localhost:9001/",
@@ -34,22 +35,27 @@ module.exports = function(grunt) {
     });
     grunt.log.writeln("starting ");
     var util = require("./lib/util.js");
+    var fs = require("fs");
     var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
-    //var mapFile = grunt.file.readJSON(options.mapFile);
-    //if(mapFile.versions){
-    //  mapFile = mapFile.versions;
-    //}
-    //var versionsLink = util.versionLinks(mapFile);
+    var mapFile  = null;
+      if(options.mapFile){
+        mapFile = grunt.file.readJSON(options.mapFile);
+      }else{
+          eval(fs.readFileSync(options.configJsFile)+" mapFile = docbaseConfig;");
+      }
+      if(mapFile.versions){
+        mapFile = mapFile.versions;
+      }
+    var versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
     var pages = [];
     var links = [];
     var crawled = {};
     var searchIndex = [];
     var indexdLinks = [];
-    var fs = require('fs');
     var moveAssets = function(srcpath) {
       if (grunt.file.isDir(srcpath)) {
         var files = grunt.file.expand(srcpath + "/*");
@@ -103,11 +109,11 @@ module.exports = function(grunt) {
       return documentContent;
     };
     var replacePageLinks = function(documentContent) {
-      /*
+
       versionsLink.forEach(function(version) {
         documentContent = replaceLink(documentContent, version.link, urlToFielName(version.realLink));
         documentContent = replaceLink(documentContent, urlToFielName(version.link), urlToFielName(version.realLink));
-      });*/
+      });
       links.forEach(function(link) {
         var url = urlToFielName(link);
         documentContent = replaceLink(documentContent, link, url);
