@@ -28,6 +28,7 @@ module.exports = function(grunt) {
       linksVersions: '.version-switcher a',
       rootDocument: 'html',
       generateSearchIndex: true,
+      onlysearchIndex: false,
       generateHtml: true,
       startDocument: '<html>',
       endDocument: '</html>',
@@ -84,7 +85,9 @@ module.exports = function(grunt) {
       page.close();
       pages.shift();
       if (pages.length === 0) {
-        prepareAssets();
+        if(!options.onlysearchIndex) {
+          prepareAssets();
+        }
         setTimeout(function() {
           ph.exit();
           done();
@@ -134,7 +137,7 @@ module.exports = function(grunt) {
         });
       };
     };
-    var generateSearchIndex = function(page, url) {
+    var generateSearchIndex = function(page, url, ph, buildIndex) {
       page.evaluate(function(selector, url) {
         var HEADER = ['H2' , 'H1', 'H3'];
         var elements = Array.prototype.slice.call(document.querySelectorAll(selector));
@@ -168,6 +171,11 @@ module.exports = function(grunt) {
           link.link = options.generateHtml ?  urlToFielName(link.link) : link.link;
           return link;
         }));
+        if(buildIndex) {
+          grunt.log.writeln("Creating index for : "+url);
+          grunt.file.write("search-index.json", JSON.stringify(searchIndex), 'w');
+          checkQueueProcess(page, ph);
+        }
       }, options.searchIndexSelector, url);
     };
     var generatePage = function(page, url, ph) {
@@ -204,9 +212,14 @@ module.exports = function(grunt) {
                   getPageLinks(page, options.linksSelector, makeCrawler(false, false));
                   getPageLinks(page, options.linksVersions, makeCrawler(true, true));
                 };
-                generatePage(page, url, ph);
-                if (options.generateSearchIndex) {
-                  generateSearchIndex(page, url);
+                if(!options.onlysearchIndex) {
+                  generatePage(page, url, ph);
+                  if (options.generateSearchIndex) {
+                    generateSearchIndex(page, url);
+                  }
+                }
+                else {
+                  generateSearchIndex(page, url, ph, true);
                 }
               },
               error: function(e) {
@@ -224,7 +237,9 @@ module.exports = function(grunt) {
         }
       });
     };
-    clearFolder(options.generatePath);
+    if(!options.onlysearchIndex) {
+      clearFolder(options.generatePath);
+    }
     crawlPage(options.urlToAccess, true);
   });
 
