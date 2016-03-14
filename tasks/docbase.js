@@ -1,10 +1,10 @@
 /*
-* grunt-docbase
-* https://github.com/mateus/DocbaseGrunt
-*
-* Copyright (c) 2015 Mateus Freira
-* Licensed under the MIT license.
-*/
+ * grunt-docbase
+ * https://github.com/mateus/DocbaseGrunt
+ *
+ * Copyright (c) 2015 Mateus Freira
+ * Licensed under the MIT license.
+ */
 
 'use strict';
 
@@ -41,15 +41,15 @@ module.exports = function(grunt) {
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
-    var mapFile  = null;
-      if(options.mapFile){
-        mapFile = grunt.file.readJSON(options.mapFile);
-      }else{
-          eval(fs.readFileSync(options.configJsFile)+" mapFile = docbaseConfig;");
-      }
-      if(mapFile.versions){
-        mapFile = mapFile.versions;
-      }
+    var mapFile = null;
+    if (options.mapFile) {
+      mapFile = grunt.file.readJSON(options.mapFile);
+    } else {
+      eval(fs.readFileSync(options.configJsFile) + " mapFile = docbaseConfig;");
+    }
+    if (mapFile.versions) {
+      mapFile = mapFile.versions;
+    }
     var versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
     var pages = [];
@@ -74,7 +74,7 @@ module.exports = function(grunt) {
       }
     };
     var prepareAssets = function() {
-      if(options.generateHtml){
+      if (options.generateHtml) {
         options.assets.forEach(function(srcpath) {
           grunt.log.writeln("Moving:", srcpath);
           moveAssets(srcpath);
@@ -85,7 +85,7 @@ module.exports = function(grunt) {
       page.close();
       pages.shift();
       if (pages.length === 0) {
-        if(!options.onlysearchIndex) {
+        if (!options.onlysearchIndex) {
           prepareAssets();
         }
         setTimeout(function() {
@@ -138,8 +138,9 @@ module.exports = function(grunt) {
       };
     };
     var generateSearchIndex = function(page, url, ph, buildIndex) {
+      console.log(buildIndex);
       page.evaluate(function(selector, url) {
-        var HEADER = ['H2' , 'H1', 'H3'];
+        var HEADER = ['H2', 'H1', 'H3'];
         var elements = Array.prototype.slice.call(document.querySelectorAll(selector));
         var h2s = elements.filter(function(element) {
           return HEADER.indexOf(element.tagName) !== -1;
@@ -150,9 +151,12 @@ module.exports = function(grunt) {
           var nextH2Index = !!nextH2 ? elements.indexOf(nextH2) : elements.length;
           var elementsBetween = elements.slice(h2Index, nextH2Index);
           var path = url.substr(url.indexOf('#'));
-          var link = element.id ?  path + "/#" + element.id : path;
+          var spaLink = url.substr(url.indexOf('#'));
+          var link = element.id ? path + "/#" + element.id : path;
+
           return {
             link: link,
+            spaLink: spaLink,
             title: element.innerText,
             content: elementsBetween.reduce(function(text, current) {
               return text += current.outerHTML;
@@ -160,19 +164,19 @@ module.exports = function(grunt) {
           }
         });
       }, function(elements) {
-        var  missingLinks = elements.filter(function(element){
+        var missingLinks = elements.filter(function(element) {
           var has = !!indexdLinks[element.link];
-          if(!has){
+          if (!has) {
             indexdLinks[element.link] = true;
           }
           return !has;
         });
-        searchIndex = searchIndex.concat(missingLinks.map(function(link){
-          link.link = options.generateHtml ?  urlToFielName(link.link) : link.link;
+        searchIndex = searchIndex.concat(missingLinks.map(function(link) {
+          link.link = options.generateHtml ? urlToFielName(link.link) : link.link;
           return link;
         }));
-        if(buildIndex) {
-          grunt.log.writeln("Creating index for : "+url);
+        if (buildIndex) {
+          grunt.log.writeln("Creating index for : " + url);
           grunt.file.write("search-index.json", JSON.stringify(searchIndex), 'w');
           checkQueueProcess(page, ph);
         }
@@ -184,8 +188,8 @@ module.exports = function(grunt) {
       }, function(documentContent) {
         var fileName = urlToFielName(url);
         documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
-        if(options.generateHtml)
-        grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
+        if (options.generateHtml)
+          grunt.file.write(options.generatePath + fileName, options.startDocument + documentContent + options.endDocument, 'w');
         var path = options.generateHtml ? options.generatePath : '';
         grunt.file.write(path + "search-index.json", JSON.stringify(searchIndex), 'w');
         grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
@@ -212,19 +216,18 @@ module.exports = function(grunt) {
                   getPageLinks(page, options.linksSelector, makeCrawler(false, false));
                   getPageLinks(page, options.linksVersions, makeCrawler(true, true));
                 };
-                if(!options.onlysearchIndex) {
+                if (!options.onlysearchIndex) {
                   generatePage(page, url, ph);
                   if (options.generateSearchIndex) {
                     generateSearchIndex(page, url);
                   }
-                }
-                else {
+                } else {
                   generateSearchIndex(page, url, ph, true);
                 }
               },
               error: function(e) {
-                grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
-              } // optional
+                  grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
+                } // optional
             }, page);
           });
         });
@@ -237,7 +240,7 @@ module.exports = function(grunt) {
         }
       });
     };
-    if(!options.onlysearchIndex) {
+    if (!options.onlysearchIndex) {
       clearFolder(options.generatePath);
     }
     crawlPage(options.urlToAccess, true);
