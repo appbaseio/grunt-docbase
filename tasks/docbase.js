@@ -43,6 +43,9 @@ module.exports = function(grunt) {
     var inQuotes = util.inQuotes;
     var mapFile = null;
     var configData = null;
+    var currentLinksIn = [];
+    var currentId = 0;
+
     if (options.mapFile) {
       mapFile = grunt.file.readJSON(options.mapFile);
     } else {
@@ -138,6 +141,29 @@ module.exports = function(grunt) {
         });
       };
     };
+    var makeGitCrawler = function(findLinks, once) {
+      return function(currentLinks) {
+        currentLinksIn = currentLinks;
+        crawlChain(findLinks, once);
+      };
+    };
+    var crawlChain = function(findLinks, once) {
+      var link = currentLinksIn[currentId];
+      var percent = (currentId*100)/currentLinksIn.length;
+      console.log(percent+'% Completed');
+      if(currentId < currentLinksIn.length) {
+        if (!once || !crawled[link]) {
+          if (once) {
+            crawled[link] = true;
+          }
+          links.push(link);
+          crawlPage(options.urlToAccess + link, findLinks, function() {
+              crawlChain(findLinks, once);
+          });
+        }
+        currentId++;
+      }  
+    }
     var generateSearchIndex = function(page, url, ph, buildIndex) {
       page.evaluate(function(selector, url) {
         var HEADER = ['H2', 'H1', 'H3'];
@@ -197,7 +223,7 @@ module.exports = function(grunt) {
       }, options.rootDocument);
 
     };
-    var crawlPage = function(url, findLinks, settime) {
+    var crawlPage = function(url, findLinks, callback) {
       pages.push(url);
       phantom.create(function(ph) {
         ph.createPage(function(page) {
@@ -205,7 +231,7 @@ module.exports = function(grunt) {
           page.open(url, function() {
             grunt.log.writeln("Reading : " + url);
             util.waitFor({
-              debug: true,
+              debug: false,
               interval: 100,
               timeout: 50000,
               checkLoadedSelector: options.checkLoadedSelector,
@@ -224,6 +250,9 @@ module.exports = function(grunt) {
                   }
                 } else {
                   generateSearchIndex(page, url, ph, true);
+                }
+                if(callback) {
+                  callback();
                 }
               },
               error: function(e) {
@@ -271,7 +300,7 @@ module.exports = function(grunt) {
             var docbaseConfigWrite = "var docbaseConfig = " + JSON.stringify(configData, null, 2) + ";";
             grunt.file.write(options.configJsFile, docbaseConfigWrite, 'w');
             mapFile = configData.versions;
-            getPageLinks(page, options.linksSelector, makeCrawler(false, false));
+            getPageLinks(page, options.linksSelector, makeGitCrawler(false, false));
           }
         });
       }, 500);
