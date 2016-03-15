@@ -45,6 +45,8 @@ module.exports = function(grunt) {
     var configData = null;
     var currentLinksIn = [];
     var currentId = 0;
+    var makeCrawlercount = 0;
+    var currentLinksTemp = [];
 
     if (options.mapFile) {
       mapFile = grunt.file.readJSON(options.mapFile);
@@ -130,15 +132,37 @@ module.exports = function(grunt) {
     };
     var makeCrawler = function(findLinks, once) {
       return function(currentLinks) {
-        currentLinks.forEach(function(link) {
-          if (!once || !crawled[link]) {
-            if (once) {
-              crawled[link] = true;
-            }
-            links.push(link);
-            crawlPage(options.urlToAccess + link, findLinks);
+
+        if (!findLinks) {
+          currentLinksTemp = currentLinksTemp.concat(currentLinks)
+          if (versionsLink.length == makeCrawlercount) {
+
+            currentLinksTemp.forEach(function(v1, k1) {
+              var flag = true;
+              versionsLink.forEach(function(v2, k2) {
+                if (v1 == v2.link) {
+                  flag = false;
+                }
+              });
+              if (flag) {
+                currentLinksIn.push(v1);
+              }
+            });
+            crawlChain(findLinks, once);
           }
-        });
+        }
+        if (findLinks) {
+          makeCrawlercount++;
+          currentLinks.forEach(function(link) {
+            if (!once || !crawled[link]) {
+              if (once) {
+                crawled[link] = true;
+              }
+              links.push(link);
+              crawlPage(options.urlToAccess + link, findLinks);
+            }
+          });
+        }
       };
     };
     var makeGitCrawler = function(findLinks, once) {
@@ -149,20 +173,20 @@ module.exports = function(grunt) {
     };
     var crawlChain = function(findLinks, once) {
       var link = currentLinksIn[currentId];
-      var percent = (currentId*100)/currentLinksIn.length;
-      console.log(percent+'% Completed');
-      if(currentId < currentLinksIn.length) {
+      var percent = ((currentId * 100) / currentLinksIn.length).toFixed(2);
+      console.log(percent + '% Completed');
+      if (currentId < currentLinksIn.length) {
         if (!once || !crawled[link]) {
           if (once) {
             crawled[link] = true;
           }
           links.push(link);
           crawlPage(options.urlToAccess + link, findLinks, function() {
-              crawlChain(findLinks, once);
+            crawlChain(findLinks, once);
           });
         }
         currentId++;
-      }  
+      }
     }
     var generateSearchIndex = function(page, url, ph, buildIndex) {
       page.evaluate(function(selector, url) {
@@ -251,7 +275,7 @@ module.exports = function(grunt) {
                 } else {
                   generateSearchIndex(page, url, ph, true);
                 }
-                if(callback) {
+                if (callback) {
                   callback();
                 }
               },
