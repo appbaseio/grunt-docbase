@@ -32,6 +32,18 @@ exports.getPageLinks = function(page, selector, callback) {
 		callback(a);
 	}, selector);
 };
+exports.getGitMap = function(page, selector, callback) {
+	page.evaluate(function(linksSelector) {
+		var data = $('.onlyMap');
+		return data.toArray().map(function(b) {
+			return $(b).html().trim();
+		});
+	}, function(a) {
+		var returnedVal = a[0];
+		var obj = returnedVal == "" ? returnedVal : JSON.parse(returnedVal);
+		callback(obj);
+	}, selector);
+};
 exports.waitFor = function($config, page) {
 	$config._start = $config._start || new Date().getTime();
 
@@ -48,7 +60,7 @@ exports.waitFor = function($config, page) {
 			}
 		} else {
 			setTimeout(function() {
-				if ($config.debug) console.log('Retring');
+				if ($config.debug) console.log('Retrying');
 				exports.waitFor($config, page);
 			}, $config.interval || 0);
 		}

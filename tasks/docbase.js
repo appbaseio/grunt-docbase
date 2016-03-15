@@ -42,13 +42,14 @@ module.exports = function(grunt) {
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
     var mapFile = null;
+    var configData = null;
     if (options.mapFile) {
       mapFile = grunt.file.readJSON(options.mapFile);
     } else {
-      eval(fs.readFileSync(options.configJsFile) + " mapFile = docbaseConfig;");
+      eval(fs.readFileSync(options.configJsFile) + " configData = docbaseConfig;");
     }
-    if (mapFile.versions) {
-      mapFile = mapFile.versions;
+    if (configData.versions) {
+      mapFile = configData.versions;
     }
     var versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
@@ -138,7 +139,6 @@ module.exports = function(grunt) {
       };
     };
     var generateSearchIndex = function(page, url, ph, buildIndex) {
-      console.log(buildIndex);
       page.evaluate(function(selector, url) {
         var HEADER = ['H2', 'H1', 'H3'];
         var elements = Array.prototype.slice.call(document.querySelectorAll(selector));
@@ -197,12 +197,13 @@ module.exports = function(grunt) {
       }, options.rootDocument);
 
     };
-    var crawlPage = function(url, findLinks) {
+    var crawlPage = function(url, findLinks, settime) {
       pages.push(url);
       phantom.create(function(ph) {
         ph.createPage(function(page) {
           page.set('settings.userAgent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36');
           page.open(url, function() {
+            grunt.log.writeln("Reading : " + url);
             util.waitFor({
               debug: true,
               interval: 100,
@@ -240,10 +241,51 @@ module.exports = function(grunt) {
         }
       });
     };
+
+    var getGitMap = function(url) {
+      phantom.create(function(ph) {
+        ph.createPage(function(page) {
+          page.set('settings.userAgent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36');
+          page.open(url, function() {
+            readGitMap(page);
+          });
+        });
+      }, {
+        parameters: {
+          'ignore-ssl-errors': 'yes',
+          'ssl-protocol': 'tlsv1',
+          'web-security': false,
+          //'debug' : 'true'
+        }
+      });
+    }
+
+    function readGitMap(page) {
+      setTimeout(function() {
+        util.getGitMap(page, options.linksSelector, function(map_data) {
+          if (map_data == "") {
+            grunt.log.writeln('waiting for github response');
+            readGitMap(page);
+          } else {
+            configData.versions = map_data;
+            var docbaseConfigWrite = "var docbaseConfig = " + JSON.stringify(configData, null, 2) + ";";
+            grunt.file.write(options.configJsFile, docbaseConfigWrite, 'w');
+            mapFile = configData.versions;
+            getPageLinks(page, options.linksSelector, makeCrawler(false, false));
+          }
+        });
+      }, 500);
+    }
+
     if (!options.onlysearchIndex) {
       clearFolder(options.generatePath);
     }
-    crawlPage(options.urlToAccess, true);
+
+    if (configData.method == 'github') {
+      getGitMap(options.urlToAccess + 'getGitMap.html');
+    } else {
+      crawlPage(options.urlToAccess, true);
+    }
   });
 
 };
