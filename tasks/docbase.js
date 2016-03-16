@@ -24,7 +24,7 @@ module.exports = function(grunt) {
       checkLoadedSelector: "[role='flatdoc-menu']",
       urlToAccess: "http://localhost:9001/",
       assets: ['bower_components', 'styles', 'scripts', 'images'],
-      linksSelector: '[ng-href]:not(.dropdown-toggle)',
+      linksSelector: '[ng-href]',
       linksVersions: '.version-switcher a',
       rootDocument: 'html',
       generateSearchIndex: true,
@@ -118,7 +118,6 @@ module.exports = function(grunt) {
       return documentContent;
     };
     var replacePageLinks = function(documentContent) {
-
       versionsLink.forEach(function(version) {
         documentContent = replaceLink(documentContent, version.link, urlToFielName(version.realLink));
         documentContent = replaceLink(documentContent, urlToFielName(version.link), urlToFielName(version.realLink));
@@ -134,7 +133,10 @@ module.exports = function(grunt) {
       return function(currentLinks) {
 
         if (!findLinks) {
-          currentLinksTemp = currentLinksTemp.concat(currentLinks)
+          currentLinksTemp = currentLinksTemp.concat(currentLinks);
+          currentLinks.forEach(function(link) {
+            links.push(link);
+          });
           if (versionsLink.length == makeCrawlercount) {
 
             currentLinksTemp.forEach(function(v1, k1) {
@@ -148,6 +150,10 @@ module.exports = function(grunt) {
                 currentLinksIn.push(v1);
               }
             });
+            versionsLink.forEach(function(v2, k2) {
+              currentLinksIn.push(v2.link);
+            });
+            //console.log(currentLinksIn);
             crawlChain(findLinks, once);
           }
         }
@@ -176,6 +182,7 @@ module.exports = function(grunt) {
       var percent = ((currentId * 100) / currentLinksIn.length).toFixed(2);
       console.log(percent + '% Completed');
       if (currentId < currentLinksIn.length) {
+        //if (currentId < 1) {
         if (!once || !crawled[link]) {
           if (once) {
             crawled[link] = true;
