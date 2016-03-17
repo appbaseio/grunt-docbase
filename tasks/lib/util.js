@@ -65,5 +65,5 @@ exports.waitFor = function($config, page) {
 			}, $config.interval || 0);
 		}
 
-	}, $config.checkLoadedSelector);
+	}, $config.checkLoadedSelector && $config.checkNavbar);
 }
