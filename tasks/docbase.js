@@ -50,6 +50,7 @@ module.exports = function(grunt) {
     var currentLinksTemp = [];
     var progressStart = false;
     var bar;
+    var versionsLink = [];
 
     if (options.mapFile) {
       mapFile = grunt.file.readJSON(options.mapFile);
@@ -59,7 +60,7 @@ module.exports = function(grunt) {
     if (configData.versions) {
       mapFile = configData.versions;
     }
-    var versionsLink = util.versionLinks(mapFile);
+    versionsLink = util.versionLinks(mapFile);
     var phantom = require('phantom');
     var pages = [];
     var links = [];
@@ -156,7 +157,6 @@ module.exports = function(grunt) {
             versionsLink.forEach(function(v2, k2) {
               currentLinksIn.push(v2.link);
             });
-            //crawlChain(findLinks, once);
             crawlPage(options.urlToAccess, false, true, function(ph) {
               crawlChain(findLinks, once, ph);
             });
@@ -182,13 +182,9 @@ module.exports = function(grunt) {
         versionsLink.forEach(function(version) {
           currentLinksIn.push(version.link);
         });
-        //currentLinks.push('#');
-        //currentLinksIn = [];
-
-        crawlPage(options.urlToAccess, false, true, function(ph) {
+          crawlPage(options.urlToAccess, false, true, function(ph) {
           crawlChain(findLinks, once, ph);
         });
-        //crawlChain(findLinks, once);
       };
     };
     var crawlChain = function(findLinks, once, ph) {
@@ -203,10 +199,7 @@ module.exports = function(grunt) {
         console.log(currentLinksIn.length);
       }
       var link = currentLinksIn[currentId];
-      //var percent = ((currentId * 100) / currentLinksIn.length).toFixed(2);
-      //console.log(percent + '% Completed');
       if (currentId < currentLinksIn.length) {
-        //if (currentId < 1) {
         if (!once || !crawled[link]) {
           if (once) {
             crawled[link] = true;
@@ -222,8 +215,6 @@ module.exports = function(grunt) {
           if (!versionFlag) {
             versionFlag = link.indexOf('/index') == -1 ? false : true;
           }
-
-
           crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
             crawlChain(findLinks, once, ph);
           });
@@ -387,6 +378,7 @@ module.exports = function(grunt) {
             var docbaseConfigWrite = "var docbaseConfig = " + JSON.stringify(configData, null, 2) + ";";
             grunt.file.write(options.configJsFile, docbaseConfigWrite, 'w');
             mapFile = configData.versions;
+            versionsLink = util.versionLinks(mapFile);
             getPageLinks(page, options.linksSelector, makeGitCrawler(false, false));
           }
         });
@@ -403,5 +395,4 @@ module.exports = function(grunt) {
       crawlPage(options.urlToAccess, true);
     }
   });
-
 };
