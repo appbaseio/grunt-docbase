@@ -112,7 +112,7 @@ module.exports = function(grunt) {
       }
       var result = documentContent;
       termsToBaseURLReplace.forEach(function(term) {
-        result = result.replace(new RegExp(term + '/', 'g'), term + baseUrl);
+        result = result.replace(new RegExp(term + './', 'g'), term + baseUrl);
       });
       return result;
     };

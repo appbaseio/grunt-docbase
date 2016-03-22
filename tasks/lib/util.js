@@ -4,6 +4,7 @@ exports.urlToFielName = function(url) {
 	if (pageName[pageName.length - 1] === '/') {
 		pageName = pageName.substr(0, pageName.length - 1);
 	}
+	pageName = pageName == 'index' ? pageName : '.' + pageName;
 	var path = pageName + '.html';
 	return path;
 };
