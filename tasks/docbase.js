@@ -39,6 +39,7 @@ module.exports = function(grunt) {
     var util = require("./lib/util.js");
     var fs = require("fs");
     var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
+    var baseReplace = ['base href="'];
     var urlToFielName = util.urlToFielName;
     var getPageLinks = util.getPageLinks;
     var inQuotes = util.inQuotes;
@@ -111,7 +112,7 @@ module.exports = function(grunt) {
         baseUrl += "../";
       }
       var result = documentContent;
-      termsToBaseURLReplace.forEach(function(term) {
+      baseReplace.forEach(function(term) {
         result = result.replace(new RegExp(term + './', 'g'), term + baseUrl);
       });
       return result;
