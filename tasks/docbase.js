@@ -54,9 +54,11 @@ module.exports = function(grunt) {
     var bar;
     var versionsLink = [];
     var pageInfo = {
-      pageSize: 30,
+      pageSize: 40,
       totalPage: 0,
-      currentPage: 0
+      currentPage: 0,
+      pageCounter: 0,
+      totalCounter: 0
     };
 
     if (options.mapFile) {
@@ -91,7 +93,6 @@ module.exports = function(grunt) {
       }
     };
     var prepareAssets = function() {
-      console.log('we prepared');
       options.assets.forEach(function(srcpath) {
         grunt.log.writeln("Moving:", srcpath);
         moveAssets(srcpath);
@@ -193,6 +194,14 @@ module.exports = function(grunt) {
         });
       };
     };
+    var chainEnd = function(ph) {
+      prepareAssets();
+
+      setTimeout(function() {
+        ph.exit();
+        done();
+      }, 0);
+    }
     var crawlChain = function(findLinks, once, ph) {
       if (!progressStart) {
         progressStart = true;
@@ -202,17 +211,15 @@ module.exports = function(grunt) {
           width: 50,
           total: currentLinksIn.length
         });
-        console.log(currentLinksIn.length);
 
         pageInfo.totalPage = Math.floor(currentLinksIn.length / pageInfo.pageSize);
+        pageInfo.totalCounter = currentLinksIn.length;
       }
 
       //Parallel Operaion
       if (options.operation == 'parallel') {
-        if (pageInfo.currentPage <= pageInfo.totalPage) {
+        if(pageInfo.currentPage <= pageInfo.totalPage) {
           var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
-          grunt.log.writeln(pageInfo);
-          console.log(pageInfo);
           templLinks.forEach(function(link, linkKey) {
             if (!once || !crawled[link]) {
               if (once) {
@@ -230,22 +237,24 @@ module.exports = function(grunt) {
                 versionFlag = link.indexOf('/index') == -1 ? false : true;
               }
 
-              console.log(linkKey, templLinks.length);
               if (linkKey == templLinks.length - 1) {
                 crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                  //process.stdout.write("\u001b[2J\u001b[0;0H");
-                  //bar.tick();
-                  pageInfo.currentPage++;
-                  crawlChain(findLinks, once, ph);
-                  setTimeout(function() {
-                    ph.exit();
-                  }, 100);
+                    pageInfo.pageCounter++;
+                    pageInfo.currentPage++;
+                    if(pageInfo.pageCounter == pageInfo.totalCounter) {
+                      chainEnd(ph);    
+                    }
+                    crawlChain(findLinks, once, ph);
+                    setTimeout(function() {
+                      ph.exit();
+                    }, 100);
                 });
               } else {
                 crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                  //process.stdout.write("\u001b[2J\u001b[0;0H");
-                  //bar.tick();
-                  console.log('\n');
+                  pageInfo.pageCounter++;
+                  if(pageInfo.pageCounter == pageInfo.totalCounter) {
+                    chainEnd(ph);    
+                  }
                   setTimeout(function() {
                     ph.exit();
                   }, 100);
@@ -253,14 +262,6 @@ module.exports = function(grunt) {
               }
             }
           });
-        } else {
-          console.log('we reached');
-          prepareAssets();
-
-          setTimeout(function() {
-            ph.exit();
-            done();
-          }, 0);
         }
       }
 
@@ -286,7 +287,6 @@ module.exports = function(grunt) {
             crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
               process.stdout.write("\u001b[2J\u001b[0;0H");
               bar.tick();
-              console.log('\n');
               crawlChain(findLinks, once, ph);
             });
           }
