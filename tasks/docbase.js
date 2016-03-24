@@ -204,12 +204,12 @@ module.exports = function(grunt) {
         });
         console.log(currentLinksIn.length);
 
-        pageInfo.totalPage = Math.ceil(currentLinksIn.length / pageInfo.pageSize);
+        pageInfo.totalPage = Math.floor(currentLinksIn.length / pageInfo.pageSize);
       }
 
       //Parallel Operaion
       if (options.operation == 'parallel') {
-        if(pageInfo.currentPage <= pageInfo.totalPage) {
+        if (pageInfo.currentPage <= pageInfo.totalPage) {
           var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
           grunt.log.writeln(pageInfo);
           console.log(pageInfo);
@@ -230,16 +230,16 @@ module.exports = function(grunt) {
                 versionFlag = link.indexOf('/index') == -1 ? false : true;
               }
 
-                console.log(linkKey, templLinks.length);
+              console.log(linkKey, templLinks.length);
               if (linkKey == templLinks.length - 1) {
                 crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
                   //process.stdout.write("\u001b[2J\u001b[0;0H");
                   //bar.tick();
-                    pageInfo.currentPage++;
-                    crawlChain(findLinks, once, ph);
-                    setTimeout(function() {
-                      ph.exit();
-                    }, 100);
+                  pageInfo.currentPage++;
+                  crawlChain(findLinks, once, ph);
+                  setTimeout(function() {
+                    ph.exit();
+                  }, 100);
                 });
               } else {
                 crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
