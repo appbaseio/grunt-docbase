@@ -210,6 +210,7 @@ module.exports = function(grunt) {
       //Parallel Operaion
       if (options.operation == 'parallel') {
         var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
+        grunt.log.writeln(pageInfo);
         console.log(pageInfo);
         templLinks.forEach(function(link, linkKey) {
           if (!once || !crawled[link]) {
@@ -229,8 +230,8 @@ module.exports = function(grunt) {
             }
             if (linkKey == templLinks.length - 1) {
               crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                process.stdout.write("\u001b[2J\u001b[0;0H");
-                bar.tick();
+                //process.stdout.write("\u001b[2J\u001b[0;0H");
+                //bar.tick();
 
                 if (pageInfo.currentPage == pageInfo.totalPage) {
                   console.log('we reached');
@@ -251,8 +252,8 @@ module.exports = function(grunt) {
               });
             } else {
               crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                process.stdout.write("\u001b[2J\u001b[0;0H");
-                bar.tick();
+                //process.stdout.write("\u001b[2J\u001b[0;0H");
+                //bar.tick();
                 console.log('\n');
                 setTimeout(function() {
                   ph.exit();
