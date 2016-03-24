@@ -54,7 +54,7 @@ module.exports = function(grunt) {
     var bar;
     var versionsLink = [];
     var pageInfo = {
-      pageSize: 30,
+      pageSize: 5,
       totalPage: 0,
       currentPage: 0
     };
@@ -202,60 +202,67 @@ module.exports = function(grunt) {
           total: currentLinksIn.length
         });
         console.log(currentLinksIn.length);
-
-        pageInfo.totalPage = Math.ceil(currentLinksIn.length / pageInfo.pageSize);
+        
+        pageInfo.totalPage = Math.ceil(currentLinksIn.length/pageInfo.pageSize);
       }
 
       //Parallel Operaion
-      if (options.operation == 'parallel') {
-        var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
-        templLinks.forEach(function(link, linkKey) {
-          if (!once || !crawled[link]) {
-            if (once) {
-              crawled[link] = true;
-            }
-            links.push(link);
-
-            var versionFlag = false;
-            versionsLink.forEach(function(version) {
-              if (version.link == link) {
-                versionFlag = true;
-              }
-            });
-            if (!versionFlag) {
-              versionFlag = link.indexOf('/index') == -1 ? false : true;
-            }
-            if (linkKey == templLinks.length - 1) {
-              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                process.stdout.write("\u001b[2J\u001b[0;0H");
-                bar.tick();
-
-                if (pageInfo.currentPage == pageInfo.totalPage && options.onlysearchIndex) {
-                  prepareAssets();
-
-                  setTimeout(function() {
-                    ph.exit();
-                    done();
-                  }, 0);
-                } else {
-                  pageInfo.currentPage++;
-                  crawlChain(findLinks, once, ph);
-                }
-
-              });
-            } else {
-              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                process.stdout.write("\u001b[2J\u001b[0;0H");
-                bar.tick();
-                console.log('\n');
-              });
-            }
+      if(options.operation == 'parallel') {
+      var templLinks = currentLinksIn.slice(pageInfo.currentPage*pageInfo.pageSize, (pageInfo.currentPage+1)*pageInfo.pageSize);
+      templLinks.forEach(function(link, linkKey) {
+        if (!once || !crawled[link]) {
+          if (once) {
+            crawled[link] = true;
           }
-        });
+          links.push(link);
+
+          var versionFlag = false;
+          versionsLink.forEach(function(version) {
+            if (version.link == link) {
+              versionFlag = true;
+            }
+          });
+          if (!versionFlag) {
+            versionFlag = link.indexOf('/index') == -1 ? false : true;
+          }
+          if(linkKey == templLinks.length-1) {
+            crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+              process.stdout.write("\u001b[2J\u001b[0;0H");
+              bar.tick();
+              
+              if(pageInfo.currentPage == pageInfo.totalPage && options.onlysearchIndex) {
+                prepareAssets();
+
+                setTimeout(function() {
+                  ph.exit();
+                  done();
+                }, 0);
+              } else {
+                pageInfo.currentPage++;
+                crawlChain(findLinks, once, ph);
+                setTimeout(function() {
+                  ph.exit();
+                },100);
+              }
+
+            });
+          }
+          else {
+            crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+              process.stdout.write("\u001b[2J\u001b[0;0H");
+              bar.tick();
+              console.log('\n');
+              setTimeout(function() {
+                ph.exit();
+              },100);
+            });
+          }
+        }
+      });
       }
 
       //Series Operaion
-      else if (options.operation == 'series') {
+      else if(options.operation == 'series') {
         var link = currentLinksIn[currentId];
         if (currentId < currentLinksIn.length) {
           if (!once || !crawled[link]) {
