@@ -33,7 +33,8 @@ module.exports = function(grunt) {
       generateHtml: true,
       startDocument: '<html>',
       endDocument: '</html>',
-      searchIndexSelector: "h1, h2, h3, p, ul"
+      searchIndexSelector: "h1, h2, h3, p, ul",
+      operation: 'series'
     });
     grunt.log.writeln("starting ");
     var util = require("./lib/util.js");
@@ -197,36 +198,85 @@ module.exports = function(grunt) {
         });
         console.log(currentLinksIn.length);
       }
-      var link = currentLinksIn[currentId];
-      if (currentId < currentLinksIn.length) {
-        if (!once || !crawled[link]) {
-          if (once) {
-            crawled[link] = true;
-          }
-          links.push(link);
 
-          var versionFlag = false;
-          versionsLink.forEach(function(version) {
-            if (version.link == link) {
-              versionFlag = true;
+      //Parallel Operaion
+      if (options.operation == 'parallel') {
+        currentLinksIn.forEach(function(link, linkKey) {
+          if (!once || !crawled[link]) {
+            if (once) {
+              crawled[link] = true;
             }
-          });
-          if (!versionFlag) {
-            versionFlag = link.indexOf('/index') == -1 ? false : true;
-          }
-          crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-            crawlChain(findLinks, once, ph);
-          });
-        }
-        currentId++;
-      } else {
-        if (options.onlysearchIndex) {
-          prepareAssets();
+            links.push(link);
 
-          setTimeout(function() {
-            ph.exit();
-            done();
-          }, 0);
+            var versionFlag = false;
+            versionsLink.forEach(function(version) {
+              if (version.link == link) {
+                versionFlag = true;
+              }
+            });
+            if (!versionFlag) {
+              versionFlag = link.indexOf('/index') == -1 ? false : true;
+            }
+            if (linkKey == currentLinksIn.length - 1) {
+              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+                process.stdout.write("\u001b[2J\u001b[0;0H");
+                bar.tick();
+                if (options.onlysearchIndex) {
+                  prepareAssets();
+
+                  setTimeout(function() {
+                    ph.exit();
+                    done();
+                  }, 0);
+                }
+              });
+            } else {
+              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+                process.stdout.write("\u001b[2J\u001b[0;0H");
+                bar.tick();
+                console.log('\n');
+              });
+            }
+          }
+        });
+      }
+
+      //Series Operaion
+      else if (options.operation == 'series') {
+        var link = currentLinksIn[currentId];
+        if (currentId < currentLinksIn.length) {
+          if (!once || !crawled[link]) {
+            if (once) {
+              crawled[link] = true;
+            }
+            links.push(link);
+
+            var versionFlag = false;
+            versionsLink.forEach(function(version) {
+              if (version.link == link) {
+                versionFlag = true;
+              }
+            });
+            if (!versionFlag) {
+              versionFlag = link.indexOf('/index') == -1 ? false : true;
+            }
+            crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+              process.stdout.write("\u001b[2J\u001b[0;0H");
+              bar.tick();
+              console.log('\n');
+              crawlChain(findLinks, once, ph);
+            });
+          }
+          currentId++;
+        } else {
+          if (options.onlysearchIndex) {
+            prepareAssets();
+
+            setTimeout(function() {
+              ph.exit();
+              done();
+            }, 0);
+          }
         }
       }
     }
@@ -300,8 +350,8 @@ module.exports = function(grunt) {
           page.set('settings.userAgent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36');
           page.open(url, function() {
             if (progressStart) {
-              process.stdout.write("\u001b[2J\u001b[0;0H");
-              bar.tick();
+              // process.stdout.write("\u001b[2J\u001b[0;0H");
+              // bar.tick();
               console.log('\r\n');
               grunt.log.writeln("Reading: " + url);
             }
