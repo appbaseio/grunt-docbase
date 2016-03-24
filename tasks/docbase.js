@@ -85,12 +85,10 @@ module.exports = function(grunt) {
       }
     };
     var prepareAssets = function() {
-      if (options.generateHtml) {
-        options.assets.forEach(function(srcpath) {
-          grunt.log.writeln("Moving:", srcpath);
-          moveAssets(srcpath);
-        });
-      }
+      options.assets.forEach(function(srcpath) {
+        grunt.log.writeln("Moving:", srcpath);
+        moveAssets(srcpath);
+      });
     }
     var checkQueueProcess = function(page, ph) {
       page.close();
@@ -183,7 +181,7 @@ module.exports = function(grunt) {
         versionsLink.forEach(function(version) {
           currentLinksIn.push(version.link);
         });
-          crawlPage(options.urlToAccess, false, true, function(ph) {
+        crawlPage(options.urlToAccess, false, true, function(ph) {
           crawlChain(findLinks, once, ph);
         });
       };
@@ -223,8 +221,12 @@ module.exports = function(grunt) {
         currentId++;
       } else {
         if (options.onlysearchIndex) {
-          ph.exit();
-          done();
+          prepareAssets();
+
+          setTimeout(function() {
+            ph.exit();
+            done();
+          }, 0);
         }
       }
     }
@@ -386,10 +388,7 @@ module.exports = function(grunt) {
       }, 500);
     }
 
-    if (!options.onlysearchIndex) {
-      clearFolder(options.generatePath);
-    }
-
+    clearFolder(options.generatePath);
     if (configData.method == 'github') {
       getGitMap(options.urlToAccess + 'getGitMap.html');
     } else {
