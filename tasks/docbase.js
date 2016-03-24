@@ -209,60 +209,59 @@ module.exports = function(grunt) {
 
       //Parallel Operaion
       if (options.operation == 'parallel') {
-        var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
-        grunt.log.writeln(pageInfo);
-        console.log(pageInfo);
-        templLinks.forEach(function(link, linkKey) {
-          if (!once || !crawled[link]) {
-            if (once) {
-              crawled[link] = true;
-            }
-            links.push(link);
-
-            var versionFlag = false;
-            versionsLink.forEach(function(version) {
-              if (version.link == link) {
-                versionFlag = true;
+        if(pageInfo.currentPage <= pageInfo.totalPage) {
+          var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
+          grunt.log.writeln(pageInfo);
+          console.log(pageInfo);
+          templLinks.forEach(function(link, linkKey) {
+            if (!once || !crawled[link]) {
+              if (once) {
+                crawled[link] = true;
               }
-            });
-            if (!versionFlag) {
-              versionFlag = link.indexOf('/index') == -1 ? false : true;
-            }
-            if (linkKey == templLinks.length - 1) {
-              console.log(linkKey, templLinks);
-              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                //process.stdout.write("\u001b[2J\u001b[0;0H");
-                //bar.tick();
+              links.push(link);
 
-                if (pageInfo.currentPage == pageInfo.totalPage) {
-                  console.log('we reached');
-                  prepareAssets();
+              var versionFlag = false;
+              versionsLink.forEach(function(version) {
+                if (version.link == link) {
+                  versionFlag = true;
+                }
+              });
+              if (!versionFlag) {
+                versionFlag = link.indexOf('/index') == -1 ? false : true;
+              }
 
-                  setTimeout(function() {
-                    ph.exit();
-                    done();
-                  }, 0);
-                } else {
-                  pageInfo.currentPage++;
-                  crawlChain(findLinks, once, ph);
+                console.log(linkKey, templLinks.length);
+              if (linkKey == templLinks.length - 1) {
+                crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+                  //process.stdout.write("\u001b[2J\u001b[0;0H");
+                  //bar.tick();
+                    pageInfo.currentPage++;
+                    crawlChain(findLinks, once, ph);
+                    setTimeout(function() {
+                      ph.exit();
+                    }, 100);
+                });
+              } else {
+                crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+                  //process.stdout.write("\u001b[2J\u001b[0;0H");
+                  //bar.tick();
+                  console.log('\n');
                   setTimeout(function() {
                     ph.exit();
                   }, 100);
-                }
-
-              });
-            } else {
-              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                //process.stdout.write("\u001b[2J\u001b[0;0H");
-                //bar.tick();
-                console.log('\n');
-                setTimeout(function() {
-                  ph.exit();
-                }, 100);
-              });
+                });
+              }
             }
-          }
-        });
+          });
+        } else {
+          console.log('we reached');
+          prepareAssets();
+
+          setTimeout(function() {
+            ph.exit();
+            done();
+          }, 0);
+        }
       }
 
       //Series Operaion
