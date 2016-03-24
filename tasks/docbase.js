@@ -54,7 +54,7 @@ module.exports = function(grunt) {
     var bar;
     var versionsLink = [];
     var pageInfo = {
-      pageSize: 5,
+      pageSize: 30,
       totalPage: 0,
       currentPage: 0
     };
@@ -91,6 +91,7 @@ module.exports = function(grunt) {
       }
     };
     var prepareAssets = function() {
+      console.log('we prepared');
       options.assets.forEach(function(srcpath) {
         grunt.log.writeln("Moving:", srcpath);
         moveAssets(srcpath);
@@ -231,7 +232,8 @@ module.exports = function(grunt) {
                 process.stdout.write("\u001b[2J\u001b[0;0H");
                 bar.tick();
 
-                if (pageInfo.currentPage == pageInfo.totalPage && options.onlysearchIndex) {
+                if (pageInfo.currentPage == pageInfo.totalPage) {
+                  console.log('we reached');
                   prepareAssets();
 
                   setTimeout(function() {
