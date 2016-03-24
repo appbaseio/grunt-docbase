@@ -229,6 +229,7 @@ module.exports = function(grunt) {
               versionFlag = link.indexOf('/index') == -1 ? false : true;
             }
             if (linkKey == templLinks.length - 1) {
+              console.log(linkKey, templLinks);
               crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
                 //process.stdout.write("\u001b[2J\u001b[0;0H");
                 //bar.tick();
