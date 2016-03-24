@@ -53,6 +53,11 @@ module.exports = function(grunt) {
     var progressStart = false;
     var bar;
     var versionsLink = [];
+    var pageInfo = {
+      pageSize: 30,
+      totalPage: 0,
+      currentPage: 0
+    };
 
     if (options.mapFile) {
       mapFile = grunt.file.readJSON(options.mapFile);
@@ -197,11 +202,14 @@ module.exports = function(grunt) {
           total: currentLinksIn.length
         });
         console.log(currentLinksIn.length);
+
+        pageInfo.totalPage = Math.ceil(currentLinksIn.length / pageInfo.pageSize);
       }
 
       //Parallel Operaion
       if (options.operation == 'parallel') {
-        currentLinksIn.forEach(function(link, linkKey) {
+        var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
+        templLinks.forEach(function(link, linkKey) {
           if (!once || !crawled[link]) {
             if (once) {
               crawled[link] = true;
@@ -217,18 +225,23 @@ module.exports = function(grunt) {
             if (!versionFlag) {
               versionFlag = link.indexOf('/index') == -1 ? false : true;
             }
-            if (linkKey == currentLinksIn.length - 1) {
+            if (linkKey == templLinks.length - 1) {
               crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
                 process.stdout.write("\u001b[2J\u001b[0;0H");
                 bar.tick();
-                if (options.onlysearchIndex) {
+
+                if (pageInfo.currentPage == pageInfo.totalPage && options.onlysearchIndex) {
                   prepareAssets();
 
                   setTimeout(function() {
                     ph.exit();
                     done();
                   }, 0);
+                } else {
+                  pageInfo.currentPage++;
+                  crawlChain(findLinks, once, ph);
                 }
+
               });
             } else {
               crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
