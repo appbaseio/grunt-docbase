@@ -54,7 +54,7 @@ module.exports = function(grunt) {
     var bar;
     var versionsLink = [];
     var pageInfo = {
-      pageSize: 40,
+      pageSize: 3,
       totalPage: 0,
       currentPage: 0,
       pageCounter: 0,
@@ -196,7 +196,6 @@ module.exports = function(grunt) {
     };
     var chainEnd = function(ph) {
       prepareAssets();
-
       setTimeout(function() {
         ph.exit();
         done();
@@ -237,29 +236,23 @@ module.exports = function(grunt) {
                 versionFlag = link.indexOf('/index') == -1 ? false : true;
               }
 
-              if (linkKey == templLinks.length - 1) {
-                crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
+              //if (linkKey == templLinks.length - 1) {
+                crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph, url, page) {
                     pageInfo.pageCounter++;
-                    pageInfo.currentPage++;
+                    console.log(pageInfo.pageCounter, 'Done : '+ urlToFielName(url));
+                    if(pageInfo.pageCounter == (pageInfo.currentPage+1)*pageInfo.pageSize) {
+                      pageInfo.currentPage++;    
+                      crawlChain(findLinks, once, ph);
+                    }
                     if(pageInfo.pageCounter == pageInfo.totalCounter) {
                       chainEnd(ph);    
                     }
-                    crawlChain(findLinks, once, ph);
+                    //page.close();
                     setTimeout(function() {
                       ph.exit();
                     }, 100);
                 });
-              } else {
-                crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
-                  pageInfo.pageCounter++;
-                  if(pageInfo.pageCounter == pageInfo.totalCounter) {
-                    chainEnd(ph);    
-                  }
-                  setTimeout(function() {
-                    ph.exit();
-                  }, 100);
-                });
-              }
+              
             }
           });
         }
@@ -287,23 +280,19 @@ module.exports = function(grunt) {
             crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
               process.stdout.write("\u001b[2J\u001b[0;0H");
               bar.tick();
+              setTimeout(function() {
+                ph.exit();
+              }, 100);
               crawlChain(findLinks, once, ph);
             });
           }
           currentId++;
         } else {
-          if (options.onlysearchIndex) {
-            prepareAssets();
-
-            setTimeout(function() {
-              ph.exit();
-              done();
-            }, 0);
-          }
+          chainEnd(ph);
         }
       }
     }
-    var generateSearchIndex = function(page, url, ph, buildIndex) {
+    var generateSearchIndex = function(page, url, ph, buildIndex, callback) {
       page.evaluate(function(selector, url) {
         var HEADER = ['H2', 'H1', 'H3'];
         var elements = Array.prototype.slice.call(document.querySelectorAll(selector));
@@ -345,14 +334,19 @@ module.exports = function(grunt) {
             grunt.log.writeln("Creating index for: " + url);
           }
           grunt.file.write("search-index.json", JSON.stringify(searchIndex), 'w');
-          checkQueueProcess(page, ph);
+          setTimeout(function(){
+            if(callback) {
+              callback(ph, url);
+            }
+          });   
         }
       }, options.searchIndexSelector, url);
     };
-    var generatePage = function(page, url, ph) {
+    var generatePage = function(page, url, ph, callback) {
       page.evaluate(function(rootDocument) {
         return document.querySelector(rootDocument).innerHTML;
       }, function(documentContent) {
+                  
         var fileName = urlToFielName(url);
         documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
         if (options.generateHtml)
@@ -362,7 +356,11 @@ module.exports = function(grunt) {
         if (progressStart) {
           grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
         }
-        checkQueueProcess(page, ph);
+        setTimeout(function(){
+          if(callback) {
+            callback(ph, url, page);
+          }
+        });   
       }, options.rootDocument);
 
     };
@@ -394,20 +392,22 @@ module.exports = function(grunt) {
                   getPageLinks(page, options.linksVersions, makeCrawler(true, true));
                 };
                 if (!options.onlysearchIndex) {
-                  generatePage(page, url, ph);
+                  generatePage(page, url, ph, callback);
                   if (options.generateSearchIndex) {
                     if (progressStart && !versionFlag)
                       generateSearchIndex(page, url);
                   }
                 } else {
                   if (progressStart && !versionFlag) {
-                    generateSearchIndex(page, url, ph, true);
+                    generateSearchIndex(page, url, ph, true, callback);
+                  }
+                  else {
+                    if (callback) {
+                      callback(ph, url);
+                    }
                   }
                 }
-
-                if (callback) {
-                  callback(ph);
-                }
+                
               },
               error: function(e) {
                   grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
