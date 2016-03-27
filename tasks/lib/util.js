@@ -13,7 +13,7 @@ exports.versionLinks = function(mapFile) {
 		var url = '#/' + key;
 		return {
 			link: url,
-			realLink: url + '/' + mapFile[key][0].name + '/' + mapFile[key][0].files[0].name
+			realLink: url
 		}
 	});
 	return versions;
