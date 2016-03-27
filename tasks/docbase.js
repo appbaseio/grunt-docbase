@@ -247,7 +247,7 @@ module.exports = function(grunt) {
                     crawlChain(findLinks, once, ph);
                     setTimeout(function() {
                       ph.exit();
-                    }, 100);
+                    }, 2000);
                 });
               } else {
                 crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
@@ -257,7 +257,7 @@ module.exports = function(grunt) {
                   }
                   setTimeout(function() {
                     ph.exit();
-                  }, 100);
+                  }, 2000);
                 });
               }
             }
