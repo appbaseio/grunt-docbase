@@ -196,7 +196,6 @@ module.exports = function(grunt) {
     };
     var chainEnd = function(ph) {
       prepareAssets();
-
       setTimeout(function() {
         ph.exit();
         done();
@@ -244,10 +243,12 @@ module.exports = function(grunt) {
                     if(pageInfo.pageCounter == pageInfo.totalCounter) {
                       chainEnd(ph);    
                     }
-                    crawlChain(findLinks, once, ph);
-                    setTimeout(function() {
-                      ph.exit();
-                    }, 2000);
+                    else {
+                      crawlChain(findLinks, once, ph);
+                      setTimeout(function() {
+                        ph.exit();
+                      }, 2000);
+                    }
                 });
               } else {
                 crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph) {
