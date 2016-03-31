@@ -204,9 +204,9 @@ module.exports = function(grunt) {
     var crawlChain = function(findLinks, once, ph) {
       if (!progressStart) {
         progressStart = true;
-        bar = new ProgressBar('Progress [:bar] :percent :etas', {
+        bar = new ProgressBar('Progress ╢:bar╟ :percent :etas', {
           complete: '█',
-          incomplete: '▒',
+          incomplete: '░',
           width: 50,
           total: currentLinksIn.length
         });
