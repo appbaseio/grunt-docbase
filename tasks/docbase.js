@@ -205,8 +205,8 @@ module.exports = function(grunt) {
       if (!progressStart) {
         progressStart = true;
         bar = new ProgressBar('Progress [:bar] :percent :etas', {
-          complete: '=',
-          incomplete: ' ',
+          complete: '█',
+          incomplete: '▒',
           width: 50,
           total: currentLinksIn.length
         });
