@@ -392,11 +392,11 @@ module.exports = function(grunt) {
                   getPageLinks(page, options.linksVersions, makeCrawler(true, true));
                 };
                 if (!options.onlysearchIndex) {
-                  generatePage(page, url, ph, callback);
                   if (options.generateSearchIndex) {
                     if (progressStart && !versionFlag)
                       generateSearchIndex(page, url);
                   }
+                  generatePage(page, url, ph, callback);
                 } else {
                   if (progressStart && !versionFlag) {
                     generateSearchIndex(page, url, ph, true, callback);
@@ -462,8 +462,7 @@ module.exports = function(grunt) {
     }
 
     clearFolder(options.generatePath);
-    var manual_override = configData.hasOwnProperty('manual_override') ? configData.manual_override : false;
-    if (configData.method == 'github' && !manual_override) {
+    if (configData.method == 'github') {
       getGitMap(options.urlToAccess + 'getGitMap.html');
     } else {
       crawlPage(options.urlToAccess, true);
