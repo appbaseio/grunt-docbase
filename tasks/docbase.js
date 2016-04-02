@@ -484,7 +484,7 @@ module.exports = function(grunt) {
         serve(req, res, done)
       });
       server.listen(1234);
-      grunt.log.writeln('To see the build file, Please visit:  http://127.0.0.1/1234');
+      grunt.log.writeln('Docbase is published in build_html/. Check it out live at:  http://127.0.0.1:1234');
     };
 
   });
