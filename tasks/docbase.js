@@ -463,9 +463,9 @@ module.exports = function(grunt) {
         });
       }, 500);
     }
-
-    clearFolder(options.generatePath);
-    if (configData.method == 'github') {
+    
+  var manual_override = configData.hasOwnProperty('manual_override') ? configData.manual_override : false;
+  if (configData.method == 'github' && !manual_override) {
       getGitMap(options.urlToAccess + 'getGitMap.html');
     } else {
       crawlPage(options.urlToAccess, true);
