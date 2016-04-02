@@ -15,9 +15,6 @@ module.exports = function(grunt) {
 
   grunt.registerMultiTask('docbase', 'Grunt plugin to generate html files from your docbase project.', function() {
     var ProgressBar = require('progress');
-    var finalhandler = require('finalhandler');
-    var http = require('http');
-    var serveStatic = require('serve-static');
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
@@ -476,6 +473,9 @@ module.exports = function(grunt) {
 
 
     function serveStaticBuild() {
+      var finalhandler = require('finalhandler');
+      var http = require('http');
+      var serveStatic = require('serve-static');      
       var serve = serveStatic(options.generatePath, {
         'index': ['index.html']
       });
