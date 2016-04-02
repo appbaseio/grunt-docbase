@@ -15,6 +15,9 @@ module.exports = function(grunt) {
 
   grunt.registerMultiTask('docbase', 'Grunt plugin to generate html files from your docbase project.', function() {
     var ProgressBar = require('progress');
+    var finalhandler = require('finalhandler');
+    var http = require('http');
+    var serveStatic = require('serve-static');
     var done = this.async();
     var options = this.options({
       generatePath: 'html/',
@@ -198,7 +201,11 @@ module.exports = function(grunt) {
       prepareAssets();
       setTimeout(function() {
         ph.exit();
-        done();
+        if (configData.publish === 'local') {
+          serveStaticBuild();
+        } else {
+          done();
+        }
       }, 0);
     }
     var crawlChain = function(findLinks, once, ph) {
@@ -217,7 +224,7 @@ module.exports = function(grunt) {
 
       //Parallel Operaion
       if (options.operation == 'parallel') {
-        if(pageInfo.currentPage <= pageInfo.totalPage) {
+        if (pageInfo.currentPage <= pageInfo.totalPage) {
           var templLinks = currentLinksIn.slice(pageInfo.currentPage * pageInfo.pageSize, (pageInfo.currentPage + 1) * pageInfo.pageSize);
           templLinks.forEach(function(link, linkKey) {
             if (!once || !crawled[link]) {
@@ -237,22 +244,22 @@ module.exports = function(grunt) {
               }
 
               //if (linkKey == templLinks.length - 1) {
-                crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph, url, page) {
-                    pageInfo.pageCounter++;
-                    console.log(pageInfo.pageCounter, 'Done : '+ urlToFielName(url));
-                    if(pageInfo.pageCounter == (pageInfo.currentPage+1)*pageInfo.pageSize) {
-                      pageInfo.currentPage++;    
-                      crawlChain(findLinks, once, ph);
-                    }
-                    if(pageInfo.pageCounter == pageInfo.totalCounter) {
-                      chainEnd(ph);    
-                    }
-                    //page.close();
-                    setTimeout(function() {
-                      ph.exit();
-                    }, 100);
-                });
-              
+              crawlPage(options.urlToAccess + link, findLinks, versionFlag, function(ph, url, page) {
+                pageInfo.pageCounter++;
+                console.log(pageInfo.pageCounter, 'Done : ' + urlToFielName(url));
+                if (pageInfo.pageCounter == (pageInfo.currentPage + 1) * pageInfo.pageSize) {
+                  pageInfo.currentPage++;
+                  crawlChain(findLinks, once, ph);
+                }
+                if (pageInfo.pageCounter == pageInfo.totalCounter) {
+                  chainEnd(ph);
+                }
+                //page.close();
+                setTimeout(function() {
+                  ph.exit();
+                }, 100);
+              });
+
             }
           });
         }
@@ -334,11 +341,11 @@ module.exports = function(grunt) {
             grunt.log.writeln("Creating index for: " + url);
           }
           grunt.file.write("search-index.json", JSON.stringify(searchIndex), 'w');
-          setTimeout(function(){
-            if(callback) {
+          setTimeout(function() {
+            if (callback) {
               callback(ph, url);
             }
-          });   
+          });
         }
       }, options.searchIndexSelector, url);
     };
@@ -346,7 +353,7 @@ module.exports = function(grunt) {
       page.evaluate(function(rootDocument) {
         return document.querySelector(rootDocument).innerHTML;
       }, function(documentContent) {
-                  
+
         var fileName = urlToFielName(url);
         documentContent = replaceBaseUrl(replacePageLinks(documentContent), fileName);
         if (options.generateHtml)
@@ -356,11 +363,11 @@ module.exports = function(grunt) {
         if (progressStart) {
           grunt.log.writeln("Generating:", options.generatePath + urlToFielName(url));
         }
-        setTimeout(function(){
-          if(callback) {
+        setTimeout(function() {
+          if (callback) {
             callback(ph, url, page);
           }
-        });   
+        });
       }, options.rootDocument);
 
     };
@@ -400,14 +407,13 @@ module.exports = function(grunt) {
                 } else {
                   if (progressStart && !versionFlag) {
                     generateSearchIndex(page, url, ph, true, callback);
-                  }
-                  else {
+                  } else {
                     if (callback) {
                       callback(ph, url);
                     }
                   }
                 }
-                
+
               },
               error: function(e) {
                   grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
@@ -462,11 +468,24 @@ module.exports = function(grunt) {
     }
 
     clearFolder(options.generatePath);
-    var manual_override = configData.hasOwnProperty('manual_override') ? configData.manual_override : false;
-    if (configData.method == 'github' && !manual_override) {
+    if (configData.method == 'github') {
       getGitMap(options.urlToAccess + 'getGitMap.html');
     } else {
       crawlPage(options.urlToAccess, true);
     }
+
+
+    function serveStaticBuild() {
+      var serve = serveStatic(options.generatePath, {
+        'index': ['index.html']
+      });
+      var server = http.createServer(function(req, res) {
+        var done = finalhandler(req, res)
+        serve(req, res, done)
+      });
+      server.listen(1234);
+      grunt.log.writeln('To see the build file, Please visit:  http://127.0.0.1/1234');
+    };
+
   });
 };
