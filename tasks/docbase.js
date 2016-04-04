@@ -88,7 +88,7 @@ module.exports = function(grunt) {
       if (grunt.file.isDir(srcpath)) {
         var files = grunt.file.expand(srcpath + "/*");
         files.forEach(moveAssets);
-        if(srcpath.indexOf(options.generatePath) === -1) {
+        if(srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html' && srcpath !== './search-index.json' && srcpath.indexOf('node_modules') === -1 ) {
           grunt.log.writeln("Moving:", srcpath);
         }
       } else {
