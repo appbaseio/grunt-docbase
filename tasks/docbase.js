@@ -92,7 +92,7 @@ module.exports = function(grunt) {
           grunt.log.writeln("Moving:", srcpath);
         }
       } else {
-        if(srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html') {
+        if(srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html' && srcpath !== './search-index.json') {
           grunt.file.copy(srcpath, options.generatePath + srcpath)
         }
       }
