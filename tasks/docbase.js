@@ -76,14 +76,6 @@ module.exports = function(grunt) {
     var crawled = {};
     var searchIndex = [];
     var indexdLinks = [];
-    var moveAssets = function(srcpath) {
-      if (grunt.file.isDir(srcpath)) {
-        var files = grunt.file.expand(srcpath + "/*");
-        files.forEach(moveAssets);
-      } else {
-        grunt.file.copy(srcpath, options.generatePath + srcpath)
-      }
-    };
     var clearFolder = function(srcpath) {
       if (grunt.file.isDir(srcpath)) {
         var files = grunt.file.expand(srcpath + "/*");
@@ -92,9 +84,20 @@ module.exports = function(grunt) {
         grunt.file.delete(srcpath);
       }
     };
-    var prepareAssets = function() {
+    var moveAssets = function(srcpath) {
+      if (grunt.file.isDir(srcpath)) {
+        var files = grunt.file.expand(srcpath + "/*");
+        files.forEach(moveAssets);
+        if(srcpath.indexOf(options.generatePath) === -1) {
+          grunt.log.writeln("Moving:", srcpath);
+        }
+      } else {
+        if(srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html') {
+          grunt.file.copy(srcpath, options.generatePath + srcpath)
+        }
+      }
+    };var prepareAssets = function() {
       options.assets.forEach(function(srcpath) {
-        grunt.log.writeln("Moving:", srcpath);
         moveAssets(srcpath);
       });
     }
@@ -470,7 +473,6 @@ module.exports = function(grunt) {
     } else {
       crawlPage(options.urlToAccess, true);
     }
-
 
     function serveStaticBuild() {
       var finalhandler = require('finalhandler');
