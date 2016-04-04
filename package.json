@@ -43,6 +43,6 @@
     "gruntplugin"
   ],
   "dependencies": {
-    "phantom": "^0.7.2"
+    "phantomjs-prebuilt": "^2.1.7"
   }
 }
