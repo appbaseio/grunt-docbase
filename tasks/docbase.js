@@ -31,6 +31,7 @@ module.exports = function(grunt) {
       generateSearchIndex: true,
       onlysearchIndex: false,
       generateHtml: true,
+      enableCrawlerDebug: false,
       startDocument: '<html>',
       endDocument: '</html>',
       searchIndexSelector: "h1, h2, h3, p, ul",
@@ -426,7 +427,7 @@ module.exports = function(grunt) {
           'ignore-ssl-errors': 'yes',
           'ssl-protocol': 'tlsv1',
           'web-security': false,
-          //'debug' : 'true'
+          'debug' : options.enableCrawlerDebug.toString()
         }
       });
     };
@@ -444,7 +445,7 @@ module.exports = function(grunt) {
           'ignore-ssl-errors': 'yes',
           'ssl-protocol': 'tlsv1',
           'web-security': false,
-          //'debug' : 'true'
+          'debug' : options.enableCrawlerDebug.toString()
         }
       });
     }
