@@ -89,15 +89,16 @@ module.exports = function(grunt) {
       if (grunt.file.isDir(srcpath)) {
         var files = grunt.file.expand(srcpath + "/*");
         files.forEach(moveAssets);
-        if(srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html' && srcpath !== './search-index.json' && srcpath.indexOf('node_modules') === -1 ) {
+        if (srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html' && srcpath !== './search-index.json' && srcpath.indexOf('node_modules') === -1) {
           grunt.log.writeln("Moving:", srcpath);
         }
       } else {
-        if(srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html' && srcpath !== './search-index.json' && srcpath.indexOf('node_modules') === -1 ) {
+        if (srcpath.indexOf(options.generatePath) === -1 && srcpath !== './index.html' && srcpath !== './search-index.json' && srcpath.indexOf('node_modules') === -1) {
           grunt.file.copy(srcpath, options.generatePath + srcpath)
         }
       }
-    };var prepareAssets = function() {
+    };
+    var prepareAssets = function() {
       options.assets.forEach(function(srcpath) {
         moveAssets(srcpath);
       });
@@ -427,7 +428,7 @@ module.exports = function(grunt) {
           'ignore-ssl-errors': 'yes',
           'ssl-protocol': 'tlsv1',
           'web-security': false,
-          'debug' : options.enableCrawlerDebug.toString()
+          'debug': options.enableCrawlerDebug.toString()
         }
       });
     };
@@ -445,7 +446,7 @@ module.exports = function(grunt) {
           'ignore-ssl-errors': 'yes',
           'ssl-protocol': 'tlsv1',
           'web-security': false,
-          'debug' : options.enableCrawlerDebug.toString()
+          'debug': options.enableCrawlerDebug.toString()
         }
       });
     }
@@ -467,18 +468,33 @@ module.exports = function(grunt) {
         });
       }, 500);
     }
-    
-  var manual_override = configData.hasOwnProperty('manual_override') ? configData.manual_override : false;
-  if (configData.method == 'github' && !manual_override) {
-      getGitMap(options.urlToAccess + 'getGitMap.html');
-    } else {
-      crawlPage(options.urlToAccess, true);
+
+    fs.access('bower_components', fs.F_OK, function(err) {
+      if (!err) {
+        initialize();
+      } else {
+        var bowerInfo = '\nbower_components does not exists, ' +
+          '\nTo install bower components run following commands in terminal.' +
+          '\nnpm install -g bower' +
+          '\nbower install';
+        grunt.log.write(bowerInfo);
+        done();
+      }
+    });
+
+    function initialize() {
+      var manual_override = configData.hasOwnProperty('manual_override') ? configData.manual_override : false;
+      if (configData.method == 'github' && !manual_override) {
+        getGitMap(options.urlToAccess + 'getGitMap.html');
+      } else {
+        crawlPage(options.urlToAccess, true);
+      }
     }
 
     function serveStaticBuild() {
       var finalhandler = require('finalhandler');
       var http = require('http');
-      var serveStatic = require('serve-static');      
+      var serveStatic = require('serve-static');
       var serve = serveStatic(options.generatePath, {
         'index': ['index.html']
       });
