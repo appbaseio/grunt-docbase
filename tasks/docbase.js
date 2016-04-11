@@ -469,18 +469,27 @@ module.exports = function(grunt) {
       }, 500);
     }
 
-    fs.access('bower_components', fs.F_OK, function(err) {
-      if (!err) {
-        initialize();
-      } else {
-        var bowerInfo = '\nbower_components does not exists, ' +
-          '\nTo install bower components run following commands in terminal.' +
-          '\nnpm install -g bower' +
-          '\nbower install';
-        grunt.log.write(bowerInfo);
-        done();
-      }
-    });
+    if (configData.publish === 'local') {
+      check_bower();
+    }
+    else {
+      initialize();
+    }
+
+    function check_bower() {
+      fs.access('bower_components', fs.F_OK, function(err) {
+        if (!err) {
+          initialize();
+        } else {
+          var bowerInfo = '\nbower_components does not exists, ' +
+            '\nTo install bower components run following commands in terminal.' +
+            '\nnpm install -g bower' +
+            '\nbower install';
+          grunt.log.write(bowerInfo);
+          done();
+        }
+      });
+    }
 
     function initialize() {
       var manual_override = configData.hasOwnProperty('manual_override') ? configData.manual_override : false;
