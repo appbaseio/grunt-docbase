@@ -1,6 +1,6 @@
 {
   "name": "grunt-docbase",
-  "description": "Static HTML generetor plugin.",
+  "description": "Static HTML generator plugin.",
   "version": "0.1.43",
   "homepage": "https://github.com/appbaseio/grunt-docbase",
   "author": {
