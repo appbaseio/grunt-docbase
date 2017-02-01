@@ -43,7 +43,7 @@
     "gruntplugin"
   ],
   "dependencies": {
-    "phantom": "^0.7.2",
-    "finalhandler": "~0.4.1"
+    "finalhandler": "~0.4.1",
+    "phantom": "^4.0.0"
   }
 }

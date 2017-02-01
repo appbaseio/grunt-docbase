@@ -29,9 +29,9 @@ exports.getPageLinks = function(page, selector, callback) {
 		}).filter(function(link) {
 			return link.indexOf("http://") === -1 && link.indexOf("https://") === -1;
 		});
-	}, function(a) {
+	}, selector).then(function(a) {
 		callback(a);
-	}, selector);
+	});
 };
 exports.getGitMap = function(page, selector, callback) {
 	page.evaluate(function(linksSelector) {
@@ -39,11 +39,11 @@ exports.getGitMap = function(page, selector, callback) {
 		return data.toArray().map(function(b) {
 			return $(b).html().trim();
 		});
-	}, function(a) {
+	}, selector).then(function(a) {
 		var returnedVal = a[0];
 		var obj = returnedVal == "" ? returnedVal : JSON.parse(returnedVal);
 		callback(obj);
-	}, selector);
+	});
 };
 exports.waitFor = function($config, page) {
 	$config._start = $config._start || new Date().getTime();
@@ -53,7 +53,7 @@ exports.waitFor = function($config, page) {
 		if ($config.debug) console.log('timedout ' + (new Date - $config._start) + 'ms');
 		return;
 	}
-	page.evaluate($config.check, function(result) {
+	page.evaluate($config.check, $config.checkLoadedSelector && $config.checkNavbar).then(function(result) {
 		if (result) {
 			if (result) {
 				if ($config.debug) console.log('success ' + (new Date - $config._start) + 'ms');
@@ -65,6 +65,5 @@ exports.waitFor = function($config, page) {
 				exports.waitFor($config, page);
 			}, $config.interval || 0);
 		}
-
-	}, $config.checkLoadedSelector && $config.checkNavbar);
+	});
 }
