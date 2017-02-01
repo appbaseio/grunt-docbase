@@ -131,7 +131,7 @@ module.exports = function(grunt) {
 		};
 		var replaceLink = function(documentContent, from, to) {
 			documentContent = documentContent.replace(new RegExp(inQuotes(from), 'g'), to);
-			documentContent = documentContent.replace(new RegExp(from+"\#", 'g'), to+"#");
+			documentContent = documentContent.replace(new RegExp(from + "\#", 'g'), to + "#");
 			return documentContent;
 		};
 		var replacePageLinks = function(documentContent) {
@@ -202,7 +202,10 @@ module.exports = function(grunt) {
 		var chainEnd = function(ph) {
 			prepareAssets();
 			setTimeout(function() {
-				ph.exit();
+				try {
+					ph.exit().catch(function(err){
+					});
+				} catch (e) {}
 				if (configData.publish === 'local') {
 					serveStaticBuild();
 				} else {
