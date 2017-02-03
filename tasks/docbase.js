@@ -37,7 +37,7 @@ module.exports = function(grunt) {
 			searchIndexSelector: "h1, h2, h3, p, ul",
 			operation: 'series'
 		});
-		grunt.log.writeln("starting ");
+		grunt.log.writeln("starting 7");
 		var util = require("./lib/util.js");
 		var fs = require("fs");
 		var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
@@ -383,6 +383,7 @@ module.exports = function(grunt) {
 				'ignore-ssl-errors': 'yes',
 				'ssl-protocol': 'tlsv1',
 				'web-security': false,
+				'disk-cache': false,
 				'debug': options.enableCrawlerDebug.toString()
 			}).then(function(instance) {
 				phInstance = instance;
@@ -449,6 +450,7 @@ module.exports = function(grunt) {
 				'ignore-ssl-errors': 'yes',
 				'ssl-protocol': 'tlsv1',
 				'web-security': false,
+				'disk-cache': false,
 				'debug': options.enableCrawlerDebug.toString()
 			}).then(function(ph) {
 				ph.createPage().then(function(page) {
