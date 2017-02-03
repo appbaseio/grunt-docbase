@@ -37,7 +37,7 @@ module.exports = function(grunt) {
 			searchIndexSelector: "h1, h2, h3, p, ul",
 			operation: 'series'
 		});
-		grunt.log.writeln("starting 7");
+		grunt.log.writeln("starting");
 		var util = require("./lib/util.js");
 		var fs = require("fs");
 		var termsToBaseURLReplace = ['src="', 'href="', "src=", "href="];
@@ -435,7 +435,11 @@ module.exports = function(grunt) {
 
 							},
 							error: function(e) {
-									grunt.log.writeln("Erro generating page:", options.generatePath + urlToFielName(url));
+									grunt.log.writeln("Error generating page:", options.generatePath + urlToFielName(url));
+									phInstance.exit().catch(function(err){
+									});
+									console.log('Retring...');
+									crawlPage(url, findLinks, versionFlag, callback);
 								} // optional
 						}, page);
 					});
